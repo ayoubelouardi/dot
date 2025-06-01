@@ -1,11 +1,29 @@
 # shortcuts
-alias l='ls'
-alias ll='ls -lanh'
+alias l='ls -A'
+alias ll='ls -lAnh'
 alias v='vim'
+alias o='open'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
+alias ghostscript='/usr/bin/gs'
 
+
+# Git Aliases
+alias gs='git status'		# Show current status
+alias ga='git add .'		# Stage all changes
+alias gaa='git add -A'		# Stage all (including deletions)
+alias gc='git commit -m'	# Commit with message
+alias gca='git commit --amend'	# Amend last commit
+alias gp='git push'		# Push changes
+alias gpl='git pull'		# Pull latest changes
+alias gco='git checkout'	# Switch branches
+alias gcb='git checkout -b'	# Create and switch to new branch
+alias gl='git log --oneline --graph --decorate'  # Pretty log
+alias gb='git branch'		# List branches
+alias gcl='git clone'		# Clone a repository
+alias gss='git stash'		# Stash current changes
+alias gsp='git stash pop'	# Apply and remove latest stash
 
 # config
 alias upbash='source ~/.bashrc'
@@ -13,7 +31,6 @@ alias editvim='vim ~/.vimrc'
 alias editalias='vim ~/.bash_aliases'
 alias editbash='vim ~/.bashrc'
 alias fanctrl='sudo bash ~/.config/dot/fanctrl.sh'
-
 
 # update
 alias update='sudo bash ~/.config/dot/update.sh'
