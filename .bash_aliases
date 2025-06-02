@@ -7,14 +7,17 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias ghostscript='/usr/bin/gs'
+alias alx='cd ~/Projects/alx'
 
 
 # Git Aliases
-alias gs='git status'		# Show current status
+alias gs='git status '		# Show current status
+alias gss='git status -s'	# Show current status short
 alias ga='git add .'		# Stage all changes
 alias gaa='git add -A'		# Stage all (including deletions)
 alias gc='git commit -m'	# Commit with message
 alias gca='git commit --amend'	# Amend last commit
+alias gd='git diff'		# Diff changes
 alias gp='git push'		# Push changes
 alias gpl='git pull'		# Pull latest changes
 alias gco='git checkout'	# Switch branches
@@ -22,7 +25,7 @@ alias gcb='git checkout -b'	# Create and switch to new branch
 alias gl='git log --oneline --graph --decorate'  # Pretty log
 alias gb='git branch'		# List branches
 alias gcl='git clone'		# Clone a repository
-alias gss='git stash'		# Stash current changes
+alias gst='git stash'		# Stash current changes
 alias gsp='git stash pop'	# Apply and remove latest stash
 
 # config
