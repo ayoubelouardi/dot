@@ -119,3 +119,4 @@ set -o vi
 # add sbin to the PATH
 export PATH=$PATH:/sbin:/usr/sbin
 
+source ~/.config/dot/cfunc.sh

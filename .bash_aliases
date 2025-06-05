@@ -8,6 +8,9 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias ghostscript='/usr/bin/gs'
 alias alx='cd ~/Projects/alx'
+alias learn='cd ~/Projects/learn'
+alias learnc='cd ~/Projects/learn/c'
+
 
 
 # Git Aliases
@@ -37,3 +40,12 @@ alias fanctrl='sudo bash ~/.config/dot/fanctrl.sh'
 
 # update
 alias update='sudo bash ~/.config/dot/update.sh'
+
+
+# XAMPP
+alias start-ser='sudo /opt/lampp/lampp start'
+alias stop-ser='sudo /opt/lampp/lampp stop'
+
+
+# other
+alias rmswap='rm .*.swp'

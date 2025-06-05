@@ -11,6 +11,11 @@ Plug 'lilydjwg/colorizer'
 
 call plug#end()
 
+" c characters 
+set colorcolumn=80
+
+
+
 
 
 " Optional: Enable colorizer automatically
