@@ -49,3 +49,4 @@ alias stop-ser='sudo /opt/lampp/lampp stop'
 
 # other
 alias rmswap='rm .*.swp'
+alias vps='bash vps.sh'
