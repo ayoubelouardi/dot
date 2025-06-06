@@ -7,9 +7,13 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias ghostscript='/usr/bin/gs'
+
+# navigation
 alias alx='cd ~/Projects/alx'
 alias learn='cd ~/Projects/learn'
 alias learnc='cd ~/Projects/learn/c'
+alias webs='cd ~/Projects/websites/'
+alias mlm='cd ~/Projects/websites/MLM_Software'
 
 
 
@@ -49,4 +53,4 @@ alias stop-ser='sudo /opt/lampp/lampp stop'
 
 # other
 alias rmswap='rm .*.swp'
-alias vps='bash vps.sh'
+alias vps='bash ~/.config/dot/vps.sh'
