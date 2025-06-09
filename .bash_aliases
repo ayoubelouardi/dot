@@ -1,6 +1,6 @@
 # shortcuts
 alias l='ls -A'
-alias ll='ls -lAnh'
+alias ll='ls -lAinh'
 alias v='vim'
 alias o='open'
 alias ..='cd ..'
