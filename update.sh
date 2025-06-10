@@ -14,6 +14,7 @@ sudo apt --fix-broken install -y
 
 echo "🧹 Removing unused packages..."
 sudo apt autoremove -y
+sudo apt clean
 
 echo "📦 Updating Snap packages..."
 sudo snap refresh

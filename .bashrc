@@ -119,4 +119,17 @@ set -o vi
 # add sbin to the PATH
 export PATH=$PATH:/sbin:/usr/sbin
 
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
 source ~/.config/dot/cfunc.sh
+
+# exercism completion bash
+source <(exercism completion bash)
