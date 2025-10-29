@@ -1,0 +1,3 @@
+- [ ] install the dependecies first in the installation script
+- [ ] separte install exercism script
+- [ ] 
