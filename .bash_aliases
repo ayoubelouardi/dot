@@ -7,6 +7,8 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias ghostscript='/usr/bin/gs'
+alias diff='diff --color'
+alias readme='vim README.md'
 
 # navigation
 alias alx='cd ~/Projects/alx'
@@ -20,7 +22,7 @@ alias mlm='cd ~/Projects/websites/MLM_Software'
 # Git Aliases
 alias gs='git status '		# Show current status
 alias gss='git status -s'	# Show current status short
-alias ga='git add .'		# Stage all changes
+alias ga='git add'		# Stage changes
 alias gaa='git add -A'		# Stage all (including deletions)
 alias gc='git commit -m'	# Commit with message
 alias gca='git commit --amend'	# Amend last commit
