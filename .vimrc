@@ -30,8 +30,8 @@ call plug#end()
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""
-" c characters 
-set colorcolumn=80
+" Set colorcolumn only for C files
+autocmd FileType c setlocal colorcolumn=80
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
 """""""""""""""""""""""""""""""""""""""""""""""""""
