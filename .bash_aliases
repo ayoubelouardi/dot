@@ -38,6 +38,7 @@ alias gst='git stash'		# Stash current changes
 alias gsp='git stash pop'	# Apply and remove latest stash
 
 # config
+alias dot='cd ~/.config/dot/'
 alias upbash='source ~/.bashrc'
 alias editvim='vim ~/.vimrc'
 alias editalias='vim ~/.bash_aliases'
