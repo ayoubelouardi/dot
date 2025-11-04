@@ -34,6 +34,18 @@ call plug#end()
 autocmd FileType c setlocal colorcolumn=80
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Set tabs to 8 spaces for C files
+autocmd FileType c setlocal tabstop=8 shiftwidth=8 expandtab
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Set tabs to 4 spaces for all other files by default
+set tabstop=4
+set shiftwidth=4
+set expandtab
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 """""""""""""""""""""""""""""""""""""""""""""""""""
 " Optional: Enable colorizer automatically
 autocmd BufReadPost * ColorHighlight
