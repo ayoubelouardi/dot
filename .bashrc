@@ -133,3 +133,16 @@ source ~/.config/dot/cfunc.sh
 
 # exercism completion bash
 source <(exercism completion bash)
+
+# Node Version Manager (NVM)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"        # Load NVM
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # Load NVM bash completion
+
+# Go (conditionally add if installed in standard location)
+[ -d "/usr/local/go/bin" ] && export PATH="$PATH:/usr/local/go/bin"
+
+# PHP (Herd Lite)
+export PATH="$HOME/.config/herd-lite/bin:$PATH"
+export PHP_INI_SCAN_DIR="$HOME/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
+
