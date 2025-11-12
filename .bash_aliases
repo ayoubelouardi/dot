@@ -1,7 +1,7 @@
 # shortcuts
 alias l='ls -A'
 alias ll='ls -lAinh'
-alias v='vim'
+alias v='vim -p'
 alias o='open'
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -9,11 +9,13 @@ alias ....='cd ../../..'
 alias ghostscript='/usr/bin/gs'
 alias diff='diff --color'
 alias readme='vim README.md'
+alias p='python3'
 
 # navigation
 alias alx='cd ~/Projects/alx'
 alias learn='cd ~/Projects/learn'
 alias learnc='cd ~/Projects/learn/c'
+alias learnpy='cd ~/Projects/learn/py'
 alias webs='cd ~/Projects/websites/'
 alias mlm='cd ~/Projects/websites/MLM_Software'
 
