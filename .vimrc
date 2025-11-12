@@ -21,12 +21,17 @@ Plug 'lilydjwg/colorizer'
 " use this if you want a syntax highlighter
 " Plug 'sheerun/vim-polyglot'
 call plug#end()
-"""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
 
 
+set encoding=utf-8
 
+""""""""""""""""""""""""""""""""""""""""""""""""""
+" Omni Completion for C
+""""""""""""""""""""""""""""""""""""""""""""""""""
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""

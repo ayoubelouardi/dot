@@ -16,6 +16,10 @@ hugo,
 nvm node npm,
 obsidian,
 obs,
+glow,
+cheat.sh,
+exercism,
+
 
 - [ ] fix to windows with 3 buttons : 
 gsettings set org.gnome.desktop.wm.preferences button-layout ':minimize,maximize,close'
