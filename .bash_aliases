@@ -8,6 +8,7 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias ghostscript='/usr/bin/gs'
 alias diff='diff --color'
+alias grep='grep --color'
 alias readme='vim README.md'
 alias p='python3'
 
