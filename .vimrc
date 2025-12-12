@@ -67,6 +67,7 @@ set timeoutlen=300
 
 """""""""""""""""""""""""""""""""""""""""""""""""""
 " adding relative numbers
+set number
 set relativenumber
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
