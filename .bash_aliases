@@ -7,6 +7,7 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias ghostscript='/usr/bin/gs'
+alias less='less -R'
 alias diff='diff --color'
 alias grep='grep --color'
 alias readme='vim README.md'
@@ -18,6 +19,7 @@ alias learn='cd ~/Projects/learn'
 alias learnc='cd ~/Projects/learn/c'
 alias learnpy='cd ~/Projects/learn/py'
 alias webs='cd ~/Projects/websites/'
+alias repos='cd ~/Projects/repos/'
 alias mlm='cd ~/Projects/websites/MLM_Software'
 
 
@@ -49,7 +51,7 @@ alias editbash='vim ~/.bashrc'
 alias fanctrl='sudo bash ~/.config/dot/fanctrl.sh'
 
 # update
-alias update='sudo bash ~/.config/dot/update.sh'
+alias yupdate='sudo bash ~/.config/dot/update.sh'
 
 
 # XAMPP
@@ -60,3 +62,6 @@ alias stop-ser='sudo /opt/lampp/lampp stop'
 # other
 alias rmswap='rm .*.swp'
 alias vps='bash ~/.config/dot/vps.sh'
+
+alias apt-details='function _apt_details() { apt show "$1" && apt-cache policy "$1" && apt-file list "$1"; }; _apt_details'
+
