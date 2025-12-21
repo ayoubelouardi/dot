@@ -3,6 +3,7 @@
 - [ ] add fastfetch to be installed. 
 - [ ] add a list of simple programes like 
 chrome,
+tree,
 docker,
 vim,
 vscode,

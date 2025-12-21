@@ -31,6 +31,7 @@ FILES=(
   ".bash_logout"
   ".profile"
   ".vimrc"
+  ".inputrc"
 )
 
 echo "Installing dotfiles from $DOTFILES_DIR into $HOME..."

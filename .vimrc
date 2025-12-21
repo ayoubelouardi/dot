@@ -10,6 +10,15 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""  
 
 
+" unable full vim features - no need for vi compatibility
+set nocompatible
+" prompted to save your file whenever you try to switch out
+" of any unsaved buffers
+set hidden
+" enabling the mouse
+set mouse=a
+
+
 """""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-plug
 """""""""""""""""""""""""""""""""""""""""""""""""""
@@ -18,6 +27,7 @@ call plug#begin()
 
 Plug 'tpope/vim-sensible'
 Plug 'lilydjwg/colorizer'
+Plug 'tpope/vim-vinegar'
 " use this if you want a syntax highlighter
 " Plug 'sheerun/vim-polyglot'
 call plug#end()
