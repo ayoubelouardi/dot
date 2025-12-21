@@ -2,6 +2,8 @@
 - [ ] separte install exercism script
 - [ ] add fastfetch to be installed. 
 - [ ] add a list of simple programes like 
+wl-clipboard,
+ripgrep,
 chrome,
 tree,
 docker,
@@ -22,6 +24,12 @@ cheat.sh,
 exercism,
 kitty,
 sway[allOfThem],
+(sway app for utility
+rofi
+grim
+pulseaudio
+brightnessctl
+)
 wofi,
 tt, [
 sudo curl -L https://github.com/lemnos/tt/releases/download/v0.4.2/tt-linux -o /usr/local/bin/tt && sudo chmod +x /usr/local/bin/tt
