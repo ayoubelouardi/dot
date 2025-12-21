@@ -1,23 +1,51 @@
 #!/bin/bash
 
-# Exit on error
-set -e
+# Exit immediately if a command fails, treat unset vars as errors, and fail on pipe errors
+set -euo pipefail
 
-echo "🔄 Updating APT package list..."
-sudo apt update -y
+# Colors for output
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+RED="\033[0;31m"
+RESET="\033[0m"
 
-echo "⬆️ Upgrading installed packages..."
-sudo apt full-upgrade -y
+log() {
+    echo -e "${YELLOW}➤ $1${RESET}"
+}
 
-echo "🛠️ Fixing broken dependencies if any..."
-sudo apt --fix-broken install -y
+success() {
+    echo -e "${GREEN}✔ $1${RESET}"
+}
 
-echo "🧹 Removing unused packages..."
-sudo apt autoremove -y
-sudo apt clean
+error() {
+    echo -e "${RED}✖ $1${RESET}"
+}
 
-echo "📦 Updating Snap packages..."
-sudo snap refresh
+# Ensure script is run with sudo/root
+if [[ $EUID -ne 0 ]]; then
+   error "This script must be run as root (use sudo)."
+   exit 1
+fi
 
-echo "✅ System update and cleanup completed successfully."
+log "Updating APT package list..."
+apt update -y && success "APT package list updated."
+
+log "Upgrading installed packages..."
+apt full-upgrade -y && success "System packages upgraded."
+
+log "Fixing broken dependencies (if any)..."
+apt --fix-broken install -y && success "Broken dependencies resolved."
+
+log "Removing unused packages..."
+apt autoremove -y && apt clean && success "Unused packages removed and cache cleaned."
+
+# Check if snap is installed before refreshing
+if command -v snap >/dev/null 2>&1; then
+    log "Updating Snap packages..."
+    snap refresh && success "Snap packages updated."
+else
+    log "Snap not installed, skipping..."
+fi
+
+success "System update and cleanup completed successfully!"
 
