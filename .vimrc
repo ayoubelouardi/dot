@@ -26,10 +26,14 @@ call plug#begin()
 " List your plugins here
 
 Plug 'tpope/vim-sensible'
+" adding colors for colors code.
 Plug 'lilydjwg/colorizer'
+" making netwr
 Plug 'tpope/vim-vinegar'
-" use this if you want a syntax highlighter
-" Plug 'sheerun/vim-polyglot'
+" FzF 
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
 call plug#end()
 
 
@@ -86,4 +90,6 @@ set relativenumber
 set hlsearch
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
+" changing grep with ripgrep
+set grepprg=rg\ --vimgrep\ --smart-case\ --follow
 
