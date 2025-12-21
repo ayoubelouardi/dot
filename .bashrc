@@ -129,10 +129,6 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-source ~/.config/dot/cfunc.sh
-
-# exercism completion bash
-source <(exercism completion bash)
 
 # Node Version Manager (NVM)
 export NVM_DIR="$HOME/.nvm"
@@ -146,3 +142,13 @@ export NVM_DIR="$HOME/.nvm"
 export PATH="$HOME/.config/herd-lite/bin:$PATH"
 export PHP_INI_SCAN_DIR="$HOME/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
 
+# FzF 
+if type rg &> /dev/null; then                                                 
+    export FZF_DEFAULT_COMMAND='rg --files'                                     
+    export FZF_DEFAULT_OPTS='-m'                                                
+fi
+
+
+# for sway 
+# see: https://github.com/swaywm/sway/wiki#gtk-applications-take-20-seconds-to-start
+export GTK_USE_PORTAL=0
