@@ -12,14 +12,17 @@ alias diff='diff --color'
 alias grep='grep --color'
 alias readme='vim README.md'
 alias p='python3'
+alias untar='tar -xvf'
 
 # navigation
 alias alx='cd ~/Projects/alx'
+alias wiki='cd ~/Projects/wiki'
 alias learn='cd ~/Projects/learn'
 alias learnc='cd ~/Projects/learn/c'
 alias learnpy='cd ~/Projects/learn/py'
 alias webs='cd ~/Projects/websites/'
 alias repos='cd ~/Projects/repos/'
+alias games='cd ~/Projects/games/'
 alias mlm='cd ~/Projects/websites/MLM_Software'
 
 
@@ -64,4 +67,41 @@ alias rmswap='rm .*.swp'
 alias vps='bash ~/.config/dot/vps.sh'
 
 alias apt-details='function _apt_details() { apt show "$1" && apt-cache policy "$1" && apt-file list "$1"; }; _apt_details'
+
+
+
+
+# function for faster dev
+ccfast() {
+    # Check if at least one argument is provided
+    if [ $# -lt 1 ]; then
+        echo "Usage: ccfast <source.c> [extra compiler flags]"
+        return 1
+    fi
+
+    src="$1"
+
+    # Check if the first argument is a .c file
+    if [[ "$src" != *.c ]]; then
+        echo "Error: first argument must be a C source file (*.c)"
+        echo "Usage: ccfast <source.c> [extra compiler flags]"
+        return 1
+    fi
+
+    # Remove .c extension for output name
+    out="${src%.c}"
+
+    # Default flags
+    CFLAGS="-std=c99 -g -Wall -Wextra -pedantic -Werror -Wmissing-declarations"
+
+    # Compile
+    gcc $CFLAGS "$src" "${@:2}" -o "$out"
+    if [ $? -eq 0 ]; then
+        echo "Compilation successful. Running ./$out ..."
+        "./$out"
+    else
+        echo "Compilation failed."
+        return 1
+    fi
+}
 
