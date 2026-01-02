@@ -61,10 +61,10 @@ fi
 
 # weather (cached every 4 hours)
 cache_file="/tmp/weather_cache"
-if [ ! -f "$cache_file" ] || [ $(( $(date +%s) - $(stat -c %Y "$cache_file") )) -gt 14400 ]; then
-    curl -s 'wttr.in/casablanca?format=2' > "$cache_file"
+if [ ! -s "$cache_file" ] || [ $(( $(date +%s) - $(stat -c %Y "$cache_file") )) -gt 14400 ]; then
+    curl -s 'wttr.in/Casablanca?format=%t+%w' > "$cache_file" || echo "N/A" > "$cache_file"
 fi
 weather=$(cat "$cache_file")
 
-echo "CPU: $cpu_usage ($cpu_temp) | RAM: $mem_used | Disk: $disk_used | Battery: $battery_str $battery_icon | Net: $net_icon $net_str | Weather: $weather | $date_str"
+echo "CPU: $cpu_usage ($cpu_temp) | RAM: $mem_used | Bat: $battery_str $battery_icon | Net: $net_icon $net_str | $weather | $date_str"
 
