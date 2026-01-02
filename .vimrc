@@ -12,6 +12,7 @@
 
 " unable full vim features - no need for vi compatibility
 set nocompatible
+syntax on
 " prompted to save your file whenever you try to switch out
 " of any unsaved buffers
 set hidden
@@ -33,6 +34,9 @@ Plug 'tpope/vim-vinegar'
 " FzF 
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+" auto pair for \{, \(, \[...
+Plug 'jiangmiao/auto-pairs'
+
 
 call plug#end()
 
@@ -46,6 +50,14 @@ set encoding=utf-8
 """"""""""""""""""""""""""""""""""""""""""""""""""
 filetype plugin on
 set omnifunc=syntaxcomplete#Complete
+
+""""""""""""""""""""""""""""""""""""""""""""""""""
+" Set habamax colorscheme only for C files
+""""""""""""""""""""""""""""""""""""""""""""""""""
+augroup c_colorscheme
+  autocmd!
+  autocmd FileType c colorscheme habamax
+augroup END
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""
