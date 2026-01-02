@@ -152,3 +152,11 @@ fi
 # for sway 
 # see: https://github.com/swaywm/sway/wiki#gtk-applications-take-20-seconds-to-start
 export GTK_USE_PORTAL=0
+
+# opencode
+export PATH=/home/ia/.opencode/bin:$PATH
+
+# exercism completion
+if [ -f ~/.config/exercism/exercism_completion.bash ]; then
+    source ~/.config/exercism/exercism_completion.bash
+fi
