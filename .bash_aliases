@@ -1,3 +1,27 @@
+# bash_rc default
+
+# Enable color support for ls and add handy aliases
+if [ -x /usr/bin/dircolors ]; then
+    # Load user-specific dircolors if available, otherwise system defaults
+    if [ -r ~/.dircolors ]; then
+        eval "$(dircolors -b ~/.dircolors)"
+    else
+        eval "$(dircolors -b)"
+    fi
+
+    # Common aliases with color enabled
+    alias ls='ls --color=auto'
+    alias dir='dir --color=auto'
+    alias vdir='vdir --color=auto'
+
+    alias grep='grep --color=auto'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
+fi
+
+
+
+
 # shortcuts
 alias l='ls -A'
 alias ll='ls -lAinh'
@@ -13,6 +37,9 @@ alias grep='grep --color'
 alias readme='vim README.md'
 alias p='python3'
 alias untar='tar -xvf'
+alias pack-installed='dpkg --get-selections'
+alias test-connection='ping -c google.com'
+
 
 # navigation
 alias alx='cd ~/Projects/alx'
@@ -46,7 +73,7 @@ alias gst='git stash'		# Stash current changes
 alias gsp='git stash pop'	# Apply and remove latest stash
 
 # config
-alias dot='cd ~/.config/dot/'
+alias dot-files='cd ~/.config/dot/'
 alias upbash='source ~/.bashrc'
 alias editvim='vim ~/.vimrc'
 alias editalias='vim ~/.bash_aliases'
@@ -57,19 +84,30 @@ alias fanctrl='sudo bash ~/.config/dot/fanctrl.sh'
 alias yupdate='sudo bash ~/.config/dot/update.sh'
 
 
-# XAMPP
-alias start-ser='sudo /opt/lampp/lampp start'
-alias stop-ser='sudo /opt/lampp/lampp stop'
-
-
 # other
 alias rmswap='rm .*.swp'
 alias vps='bash ~/.config/dot/vps.sh'
 
-alias apt-details='function _apt_details() { apt show "$1" && apt-cache policy "$1" && apt-file list "$1"; }; _apt_details'
 
 
+# show packages details.
+apt_details() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: apt_details <package>"
+        return 1
+    fi
 
+    {
+        echo "=== apt show $1 ==="
+        apt show "$1"
+
+        echo -e "\n=== apt-cache policy $1 ==="
+        apt-cache policy "$1"
+
+        echo -e "\n=== apt-file list $1 ==="
+        apt-file list "$1"
+    } | less -R
+}
 
 # function for faster dev
 ccfast() {
@@ -79,7 +117,7 @@ ccfast() {
         return 1
     fi
 
-    src="$1"
+    local src="$1"
 
     # Check if the first argument is a .c file
     if [[ "$src" != *.c ]]; then
@@ -89,10 +127,10 @@ ccfast() {
     fi
 
     # Remove .c extension for output name
-    out="${src%.c}"
+    local out="${src%.c}"
 
     # Default flags
-    CFLAGS="-std=c99 -g -Wall -Wextra -pedantic -Werror -Wmissing-declarations"
+    local CFLAGS="-std=c99 -g -Wall -Wextra -pedantic -Werror -Wmissing-declarations"
 
     # Compile
     gcc $CFLAGS "$src" "${@:2}" -o "$out"

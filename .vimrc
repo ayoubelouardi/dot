@@ -12,7 +12,6 @@
 
 " unable full vim features - no need for vi compatibility
 set nocompatible
-syntax on
 " prompted to save your file whenever you try to switch out
 " of any unsaved buffers
 set hidden
@@ -54,10 +53,12 @@ set omnifunc=syntaxcomplete#Complete
 """"""""""""""""""""""""""""""""""""""""""""""""""
 " Set habamax colorscheme only for C files
 """"""""""""""""""""""""""""""""""""""""""""""""""
-augroup c_colorscheme
-  autocmd!
-  autocmd FileType c colorscheme habamax
-augroup END
+" augroup c_colorscheme
+"  autocmd!
+"  autocmd FileType c colorscheme elflord
+" augroup END
+
+colorscheme industry
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""

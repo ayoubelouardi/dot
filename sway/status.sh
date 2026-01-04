@@ -66,5 +66,5 @@ if [ ! -s "$cache_file" ] || [ $(( $(date +%s) - $(stat -c %Y "$cache_file") )) 
 fi
 weather=$(cat "$cache_file")
 
-echo "CPU: $cpu_usage ($cpu_temp) | RAM: $mem_used | Bat: $battery_str $battery_icon | Net: $net_icon $net_str | $weather | $date_str"
+echo "CPU: $cpu_usage ($cpu_temp) | RAM: $mem_used | 🔋: $battery_str $battery_icon | $net_icon $net_str | $weather | $date_str"
 
