@@ -38,6 +38,7 @@ FILES=(
     ".profile"
     ".vimrc"
     ".inputrc"
+    ".tmux.conf"
 )
 DIRECTORIES=(
     "sway"

@@ -8,6 +8,7 @@
 # see https://github.com/swaywm/sway/issues/5732
 exec systemctl --user import-environment
 
+
 ### Variables
 #
 # Logo key. Use Mod1 for Alt.
@@ -107,7 +108,7 @@ bindsym $mod+space input type:keyboard xkb_switch_layout next
     bindsym $mod+Shift+c reload
 
     # Exit sway (logs you out of your Wayland session)
-    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+    bindsym $mod+Shift+e exec swaynag -t warning -m 'Do you really want to exit sway?' -B 'Yes, exit sway' 'swaymsg exit'
 #
 # Moving around:
 #
@@ -272,6 +273,11 @@ client.urgent           #ff5555 #000000 #ff5555 #000000 #ff5555
 client.placeholder      #666666 #000000 #666666 #000000 #666666
 
 
+# Notification Daemon
+exec swaync
+
+# Toggle control center
+bindsym $mod+Shift+n exec swaync-client -t -swk
 
 # window appearance
 default_border pixel 3
@@ -280,4 +286,4 @@ smart_borders on
 
 # gaps
 gaps inner 5
-gaps outer 1
+gaps outer 0

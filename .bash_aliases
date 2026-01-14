@@ -34,11 +34,14 @@ alias ghostscript='/usr/bin/gs'
 alias less='less -R'
 alias diff='diff --color'
 alias grep='grep --color'
+alias ncdu='ncdu --color=dark'
 alias readme='vim README.md'
 alias p='python3'
 alias untar='tar -xvf'
 alias pack-installed='dpkg --get-selections'
 alias test-connection='ping -c google.com'
+alias cmatrix='cmatrix -C yellow'
+alias fastfetch='fastfetch --color yellow'
 
 
 # navigation
