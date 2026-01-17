@@ -141,3 +141,8 @@ export PATH=/home/ia/.opencode/bin:$PATH
 if [ -f ~/.config/exercism/exercism_completion.bash ]; then
     source ~/.config/exercism/exercism_completion.bash
 fi
+
+# ollama completion
+if [ -f ~/.config/ollama/completions.bash ]; then
+    source ~/.config/ollama/completions.bash
+fi
