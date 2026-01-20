@@ -228,16 +228,18 @@ bindsym $mod+r mode "resize"
 #
 # Utilities:
 #
-    # Special keys to adjust volume via PulseAudio
-    bindsym --locked XF86AudioMute exec pactl set-sink-mute \@DEFAULT_SINK@ toggle
-    bindsym --locked XF86AudioLowerVolume exec pactl set-sink-volume \@DEFAULT_SINK@ -5%
-    bindsym --locked XF86AudioRaiseVolume exec pactl set-sink-volume \@DEFAULT_SINK@ +5%
-    bindsym --locked XF86AudioMicMute exec pactl set-source-mute \@DEFAULT_SOURCE@ toggle
-    # Special keys to adjust brightness via brightnessctl
-    bindsym --locked XF86MonBrightnessDown exec brightnessctl set 1%-
-    bindsym --locked XF86MonBrightnessUp exec brightnessctl set 1%+
-    # Special key to take a screenshot with grim
-    bindsym Print exec grim
+# Volume controls with notifications
+bindsym --locked XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle && notify-send "Audio" "Mute toggled"
+bindsym --locked XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5% && notify-send "Audio" "Volume -5%"
+bindsym --locked XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5% && notify-send "Audio" "Volume +5%"
+bindsym --locked XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle && notify-send "Microphone" "Mic mute toggled"
+
+# Brightness controls with notifications
+bindsym --locked XF86MonBrightnessDown exec brightnessctl set 1%- && notify-send "Brightness" "Brightness down"
+bindsym --locked XF86MonBrightnessUp exec brightnessctl set 1%+ && notify-send "Brightness" "Brightness up"
+
+# Screenshot with notification
+bindsym Print exec grim && notify-send "Screenshot" "Saved screenshot"
 
 #
 # Status Bar:
