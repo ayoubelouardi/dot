@@ -126,5 +126,5 @@ fi
 # fi
 # weather="$(cat "$cache_file" 2>/dev/null || echo "N/A")"
 
-echo "💻$cpu_usage/$cpu_temp|🧠$mem_used|🔋$battery_str$battery_icon|$net_icon $net_str|💾$disk_used|$date_str"
+echo "💻$cpu_usage/$cpu_temp|🧠$mem_used|🔋:$battery_str$battery_icon|$net_icon $net_str|💾$disk_used|$date_str"
 

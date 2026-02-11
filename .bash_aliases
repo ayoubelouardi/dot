@@ -26,12 +26,14 @@ fi
 alias l='ls -A'
 alias ll='ls -lAinh'
 alias v='vim -p'
+alias nv='nvim -p'
 alias o='open'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias ghostscript='/usr/bin/gs'
 alias less='less -R'
+alias rm='rm -v'
 alias diff='diff --color'
 alias grep='grep --color'
 alias ncdu='ncdu --color=dark'
@@ -39,10 +41,14 @@ alias readme='vim README.md'
 alias p='python3'
 alias untar='tar -xvzf'
 alias pack-installed='dpkg --get-selections'
-alias test-connection='ping -c google.com'
+alias test-connection='ping -c 5 google.com'
 alias cmatrix='cmatrix -C yellow'
 alias fastfetch='fastfetch --color yellow'
-
+alias icat="kitten icat"
+alias ram-info='inxi -mxxz'
+alias rm-exe='rm $(find -mindepth 1 -executable -print)'
+alias old-find='find'
+# alias find='fdfind'
 
 # navigation
 alias alx='cd ~/Projects/alx'
@@ -74,11 +80,13 @@ alias gb='git branch'		# List branches
 alias gcl='git clone'		# Clone a repository
 alias gst='git stash'		# Stash current changes
 alias gsp='git stash pop'	# Apply and remove latest stash
+alias git-finish='ga . && gc'  # add everything and commit
 
 # config
 alias dot-files='cd ~/.config/dot/'
 alias upbash='source ~/.bashrc'
 alias editvim='vim ~/.vimrc'
+alias editnvim='nvim ~/.config/nvim/'
 alias editalias='vim ~/.bash_aliases'
 alias editbash='vim ~/.bashrc'
 alias fanctrl='sudo bash ~/.config/dot/fanctrl.sh'
@@ -90,6 +98,7 @@ alias yupdate='sudo bash ~/.config/dot/update.sh'
 # other
 alias rmswap='rm .*.swp'
 alias vps='bash ~/.config/dot/vps.sh'
+alias phone='bash ~/.config/dot/phone.sh'
 
 
 
@@ -138,7 +147,9 @@ ccfast() {
     # Compile
     gcc $CFLAGS "$src" "${@:2}" -o "$out"
     if [ $? -eq 0 ]; then
+        echo ""
         echo "Compilation successful. Running ./$out ..."
+        echo ""
         "./$out"
     else
         echo "Compilation failed."

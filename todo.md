@@ -30,7 +30,7 @@ grim
 pulseaudio
 brightnessctl
 )
-wofi,
+rofi,
 tt, [
 sudo curl -L https://github.com/lemnos/tt/releases/download/v0.4.2/tt-linux -o /usr/local/bin/tt && sudo chmod +x /usr/local/bin/tt
 sudo curl -o /usr/share/man/man1/tt.1.gz -L https://github.com/lemnos/tt/releases/download/v0.4.2/tt.1.gz
@@ -41,19 +41,22 @@ sendme,
     [
 curl -fsSL https://iroh.computer/sendme.sh | sh
     ]
+,
+inxi,
 
 
-- [ ] add sway config.
+- [x] add sway config.
     sway * 
-    wofi *
+    rofi *
     status *
     kitty *
 
 
-- [ ] update script needs to have those 
-     - [ ] check first if flatpack / snap exist then update
-     - [ ] update flatpack / snap
+- [x] update script needs to have those 
+     - [x] check first if flatpack / snap exist then update
+     - [x] update flatpack / snap
 - [ ] fix to windows with 3 buttons : 
 gsettings set org.gnome.desktop.wm.preferences button-layout ':minimize,maximize,close'
+- [ ] add a warning for battery life
 
 

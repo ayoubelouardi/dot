@@ -17,6 +17,12 @@ set nocompatible
 set hidden
 " enabling the mouse
 set mouse=a
+" show commands
+set showcmd
+" Highlight the text line of the cursor with CursorLine
+set cursorline
+" set vim splits defaults
+set splitbelow splitright
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""
@@ -35,6 +41,8 @@ Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 " auto pair for \{, \(, \[...
 Plug 'jiangmiao/auto-pairs'
+" markdown preview
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install' }
 
 
 call plug#end()

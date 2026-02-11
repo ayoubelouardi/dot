@@ -229,17 +229,17 @@ bindsym $mod+r mode "resize"
 # Utilities:
 #
 # Volume controls with notifications
-bindsym --locked XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle && notify-send "Audio" "Mute toggled"
-bindsym --locked XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5% && notify-send "Audio" "Volume -5%"
-bindsym --locked XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5% && notify-send "Audio" "Volume +5%"
-bindsym --locked XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle && notify-send "Microphone" "Mic mute toggled"
+bindsym --locked XF86AudioRaiseVolume exec ~/.config/sway/system_keys.sh volume-up
+bindsym --locked XF86AudioLowerVolume exec ~/.config/sway/system_keys.sh volume-down
+bindsym --locked XF86AudioMute        exec ~/.config/sway/system_keys.sh volume-mute
+bindsym --locked XF86AudioMicMute     exec ~/.config/sway/system_keys.sh mic-mute
 
 # Brightness controls with notifications
-bindsym --locked XF86MonBrightnessDown exec brightnessctl set 1%- && notify-send "Brightness" "Brightness down"
-bindsym --locked XF86MonBrightnessUp exec brightnessctl set 1%+ && notify-send "Brightness" "Brightness up"
+bindsym --locked XF86MonBrightnessUp   exec ~/.config/sway/system_keys.sh brightness-up
+bindsym --locked XF86MonBrightnessDown exec ~/.config/sway/system_keys.sh brightness-down
 
-# Screenshot with notification
-bindsym Print exec grim && notify-send "Screenshot" "Saved screenshot"
+# Screenshot with notifications
+bindsym Print exec ~/.config/sway/system_keys.sh screenshot
 
 #
 # Status Bar:

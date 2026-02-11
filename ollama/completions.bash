@@ -208,6 +208,14 @@ _ollama() {
               COMPREPLY=( $(_ollama_complete_models "$2") ) ;
             fi
             ;;
+    stop)
+            if [ "${2:0:1}" == - ] ; then
+              COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
+            else
+              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
+            fi
+            ;;
+
     pull)
             if [ "${2:0:1}" == - ] ; then
               COMPREPLY=( $(compgen -W "--help --insecure" -- "$2") ) ;
@@ -255,9 +263,9 @@ _ollama() {
             _OLLAMA_FLUSH_MODELS_CACHE=1
             ;;
     help)
-            COMPREPLY=( $(compgen -W "serve create show run pull push list ps cp rm" -- "$2") )
+            COMPREPLY=( $(compgen -W "serve create show run stop pull push list ps cp rm" -- "$2") )
             ;;
-    *)      COMPREPLY=( $(compgen -W "serve create show run pull push list ps cp rm help" -- "$2") )
+    *)      COMPREPLY=( $(compgen -W "serve create show run stop pull push list ps cp rm help" -- "$2") )
             ;;
   esac
 }
