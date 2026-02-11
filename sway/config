@@ -23,7 +23,7 @@ set $down j
 set $up k
 set $right l
 # Your preferred terminal emulator
-set $term kitty sh -c "tmux"
+set $term kitty sh -c "~/bin/zellij"
 # Your preferred application launcher
 # this is the old wmenu-run that comes with sway:
 #    set $menu wmenu-run
