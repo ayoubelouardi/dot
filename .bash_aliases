@@ -47,8 +47,8 @@ alias fastfetch='fastfetch --color yellow'
 alias icat="kitten icat"
 alias ram-info='inxi -mxxz'
 alias rm-exe='rm $(find -mindepth 1 -executable -print)'
-alias old-find='find'
-# alias find='fdfind'
+# alias old-find='find'
+alias find='fdfind'
 
 # navigation
 alias alx='cd ~/Projects/alx'

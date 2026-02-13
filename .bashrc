@@ -146,3 +146,8 @@ fi
 if [ -f ~/.config/ollama/completions.bash ]; then
     source ~/.config/ollama/completions.bash
 fi
+
+# zellij completion
+if [ -f ~/.config/zellij/completions.bash ]; then
+    source ~/.config/zellij/completions.bash
+fi
