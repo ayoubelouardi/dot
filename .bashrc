@@ -151,3 +151,4 @@ fi
 if [ -f ~/.config/zellij/completions.bash ]; then
     source ~/.config/zellij/completions.bash
 fi
+. "$HOME/.cargo/env"

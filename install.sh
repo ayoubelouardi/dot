@@ -40,10 +40,14 @@ FILES=(
     ".inputrc"
     ".tmux.conf"
 )
+
 DIRECTORIES=(
     "sway"
     "kitty"
     "rofi"
+    "zellij"
+    "ollama"
+    "KeyboardChatteringFix-Linux"
 )
 
 echo "Installing dotfiles from $DOTFILES_DIR into $HOME..."

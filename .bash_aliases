@@ -49,6 +49,7 @@ alias ram-info='inxi -mxxz'
 alias rm-exe='rm $(find -mindepth 1 -executable -print)'
 # alias old-find='find'
 alias find='fdfind'
+alias qr-wifi='sudo nmcli dev wifi show-password'
 
 # navigation
 alias alx='cd ~/Projects/alx'

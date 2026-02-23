@@ -27,3 +27,4 @@ if [ -d "$HOME/.local/bin" ] ; then
 fi
 
 # .bash_profile
+. "$HOME/.cargo/env"
