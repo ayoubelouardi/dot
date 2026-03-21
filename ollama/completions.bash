@@ -188,20 +188,20 @@ _ollama() {
             elif [ "${COMP_WORDS[COMP_CWORD-1]}" == --file ] ; then
               COMPREPLY=( $(compgen -f -o filenames -- "$2") ) ;
             else
-              COMPREPLY=( $(compgen -W "--help --file --quantize" -- "$2") ) ;
+              COMPREPLY=( $(compgen -W "--help --experimental --file --quantize" -- "$2") ) ;
             fi
             _OLLAMA_FLUSH_MODELS_CACHE=1
             ;;
     show)
             if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help --license --template --modelfile --parameters --system" -- "$2") ) ;
+              COMPREPLY=( $(compgen -W "--help --license --modelfile --parameters --system --template -v --verbose" -- "$2") ) ;
             else
               COMPREPLY=( $(_ollama_complete_models "$2") ) ;
             fi
             ;;
     run)
             if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help --format --insecure --keepalive --nowordwrap --verbose" -- "$2") ) ;
+              COMPREPLY=( $(compgen -W "--help --dimensions --experimental --experimental-websearch --experimental-yolo --format --hidethinking --insecure --keepalive --nowordwrap --think --truncate --verbose --width --height --steps --seed --negative" -- "$2") ) ;
             elif [ "${COMP_WORDS[COMP_CWORD-1]}" == --format ] ; then
               COMPREPLY=( $(compgen -W "json" -- "$2") ) ;
             else
@@ -250,7 +250,13 @@ _ollama() {
             if [ "${2:0:1}" == - ] ; then
               COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
             else
-              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
+              local prev
+              prev="${COMP_WORDS[COMP_CWORD-1]}"
+              if [[ "$prev" != "cp" && "$prev" != "--help" ]] ; then
+                COMPREPLY=( $(compgen -W "$(echo $_OLLAMA_MODELS | tr ' ' '\n' | grep -v "^${prev}$")" -- "$2") ) ;
+              else
+                COMPREPLY=( $(_ollama_complete_models "$2") ) ;
+              fi
             fi
             _OLLAMA_FLUSH_MODELS_CACHE=1
             ;;
@@ -262,10 +268,23 @@ _ollama() {
             fi
             _OLLAMA_FLUSH_MODELS_CACHE=1
             ;;
-    help)
-            COMPREPLY=( $(compgen -W "serve create show run stop pull push list ps cp rm" -- "$2") )
+    launch)
+            if [ "${2:0:1}" == - ] ; then
+              COMPREPLY=( $(compgen -W "--help --config --model --yes -y" -- "$2") ) ;
+            else
+              COMPREPLY=( $(compgen -W "claude cline codex droid opencode openclaw pi" -- "$2") ) ;
+            fi
             ;;
-    *)      COMPREPLY=( $(compgen -W "serve create show run stop pull push list ps cp rm help" -- "$2") )
+    signin)
+            COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
+            ;;
+    signout)
+            COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
+            ;;
+    help)
+            COMPREPLY=( $(compgen -W "serve create show run stop pull push signin signout list ps cp rm launch help" -- "$2") )
+            ;;
+    *)      COMPREPLY=( $(compgen -W "serve create show run stop pull push signin signout list ps cp rm launch help" -- "$2") )
             ;;
   esac
 }

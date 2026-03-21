@@ -1,0 +1,327 @@
+# ollama help
+
+```
+Large language model runner
+
+Usage:
+  ollama [flags]
+  ollama [command]
+
+Available Commands:
+  serve       Start Ollama
+  create      Create a model
+  show        Show information for a model
+  run         Run a model
+  stop        Stop a running model
+  pull        Pull a model from a registry
+  push        Push a model to a registry
+  signin      Sign in to ollama.com
+  signout     Sign out from ollama.com
+  list        List models
+  ps          List running models
+  cp          Copy a model
+  rm          Remove a model
+  launch      Launch the Ollama menu or an integration
+  help        Help about any command
+
+Flags:
+  -h, --help         help for ollama
+      --nowordwrap   Don't wrap words to the next line automatically
+      --verbose      Show timings for response
+  -v, --version      Show version information
+
+Use "ollama [command] --help" for more information about a command.
+```
+
+# extra help
+
+# ollama serve   -h
+```
+Start Ollama
+
+Usage:
+  ollama serve [flags]
+
+Aliases:
+  serve, start
+
+Flags:
+  -h, --help   help for serve
+
+Environment Variables:
+      OLLAMA_DEBUG               Show additional debug information (e.g. OLLAMA_DEBUG=1)
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+      OLLAMA_CONTEXT_LENGTH      Context length to use unless otherwise specified (default: 4k/32k/256k based on VRAM)
+      OLLAMA_KEEP_ALIVE          The duration that models stay loaded in memory (default "5m")
+      OLLAMA_MAX_LOADED_MODELS   Maximum number of loaded models per GPU
+      OLLAMA_MAX_QUEUE           Maximum number of queued requests
+      OLLAMA_MODELS              The path to the models directory
+      OLLAMA_NUM_PARALLEL        Maximum number of parallel requests
+      OLLAMA_NO_CLOUD            Disable Ollama cloud features (remote inference and web search)
+      OLLAMA_NOPRUNE             Do not prune model blobs on startup
+      OLLAMA_ORIGINS             A comma separated list of allowed origins
+      OLLAMA_SCHED_SPREAD        Always schedule model across all GPUs
+      OLLAMA_FLASH_ATTENTION     Enabled flash attention
+      OLLAMA_KV_CACHE_TYPE       Quantization type for the K/V cache (default: f16)
+      OLLAMA_LLM_LIBRARY         Set LLM library to bypass autodetection
+      OLLAMA_GPU_OVERHEAD        Reserve a portion of VRAM per GPU (bytes)
+      OLLAMA_LOAD_TIMEOUT        How long to allow model loads to stall before giving up (default "5m")
+```
+
+# ollama create  -h
+```
+
+Create a model
+
+Usage:
+  ollama create MODEL [flags]
+
+Flags:
+      --experimental      Enable experimental safetensors model creation
+  -f, --file string       Name of the Modelfile (default "Modelfile")
+  -h, --help              help for create
+  -q, --quantize string   Quantize model to this level (e.g. q4_K_M)
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+```
+
+# ollama show    -h
+```
+
+Show information for a model
+
+Usage:
+  ollama show MODEL [flags]
+
+Flags:
+  -h, --help         help for show
+      --license      Show license of a model
+      --modelfile    Show Modelfile of a model
+      --parameters   Show parameters of a model
+      --system       Show system message of a model
+      --template     Show template of a model
+  -v, --verbose      Show detailed model information
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+```
+
+# ollama run     -h
+```
+
+Run a model
+
+Usage:
+  ollama run MODEL [PROMPT] [flags]
+
+Flags:
+      --dimensions int           Truncate output embeddings to specified dimension (embedding models only)
+      --experimental             Enable experimental agent loop with tools
+      --experimental-websearch   Enable web search tool in experimental mode
+      --experimental-yolo        Skip all tool approval prompts (use with caution)
+      --format string            Response format (e.g. json)
+  -h, --help                     help for run
+      --hidethinking             Hide thinking output (if provided)
+      --insecure                 Use an insecure registry
+      --keepalive string         Duration to keep a model loaded (e.g. 5m)
+      --nowordwrap               Don't wrap words to the next line automatically
+      --think string[="true"]    Enable thinking mode: true/false or high/medium/low for supported models
+      --truncate                 For embedding models: truncate inputs exceeding context length (default: true). Set --truncate=false to error instead
+      --verbose                  Show timings for response
+
+Image Generation Flags (experimental):
+      --width int      Image width
+      --height int     Image height
+      --steps int      Denoising steps
+      --seed int       Random seed
+      --negative str   Negative prompt
+
+Environment Variables:
+      OLLAMA_EDITOR              Path to editor for interactive prompt editing (Ctrl+G)
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+      OLLAMA_NOHISTORY           Do not preserve readline history
+```
+
+# ollama stop    -h
+```
+
+Stop a running model
+
+Usage:
+  ollama stop MODEL [flags]
+
+Flags:
+  -h, --help   help for stop
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+```
+
+# ollama pull    -h
+```
+
+Pull a model from a registry
+
+Usage:
+  ollama pull MODEL [flags]
+
+Flags:
+  -h, --help       help for pull
+      --insecure   Use an insecure registry
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+```
+
+# ollama push    -h
+```
+Push a model to a registry
+
+Usage:
+  ollama push MODEL [flags]
+
+Flags:
+  -h, --help       help for push
+      --insecure   Use an insecure registry
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+
+```
+
+# ollama signin  -h
+```
+
+Sign in to ollama.com
+
+Usage:
+  ollama signin [flags]
+
+Flags:
+  -h, --help   help for signin
+```
+
+# ollama signout -h
+```
+
+Sign out from ollama.com
+
+Usage:
+  ollama signout [flags]
+
+Flags:
+  -h, --help   help for signout
+```
+
+# ollama list    -h
+```
+
+List models
+
+Usage:
+  ollama list [flags]
+
+Aliases:
+  list, ls
+
+Flags:
+  -h, --help   help for list
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+```
+
+# ollama ps      -h
+```
+
+List running models
+
+Usage:
+  ollama ps [flags]
+
+Flags:
+  -h, --help   help for ps
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+```
+
+# ollama cp      -h
+```
+
+Copy a model
+
+Usage:
+  ollama cp SOURCE DESTINATION [flags]
+
+Flags:
+  -h, --help   help for cp
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+```
+
+# ollama rm      -h
+```
+
+Remove a model
+
+Usage:
+  ollama rm MODEL [MODEL...] [flags]
+
+Flags:
+  -h, --help   help for rm
+
+Environment Variables:
+      OLLAMA_HOST                IP Address for the ollama server (default 127.0.0.1:11434)
+```
+
+# ollama launch  -h
+```
+
+Launch the Ollama interactive menu, or directly launch a specific integration.
+
+Without arguments, this is equivalent to running 'ollama' directly.
+Flags and extra arguments require an integration name.
+
+Supported integrations:
+  claude    Claude Code
+  cline     Cline
+  codex     Codex
+  droid     Droid
+  opencode  OpenCode
+  openclaw  OpenClaw (aliases: clawdbot, moltbot)
+  pi        Pi
+
+Examples:
+  ollama launch
+  ollama launch claude
+  ollama launch claude --model <model>
+  ollama launch droid --config (does not auto-launch)
+  ollama launch codex -- -p myprofile (pass extra args to integration)
+  ollama launch codex -- --sandbox workspace-write
+
+Usage:
+  ollama launch [INTEGRATION] [-- [EXTRA_ARGS...]] [flags]
+
+Flags:
+      --config         Configure without launching
+  -h, --help           help for launch
+      --model string   Model to use
+  -y, --yes            Automatically answer yes to confirmation prompts
+```
+
+# ollama help    -h
+```
+
+Help provides help for any command in the application.
+Simply type ollama help [path to command] for full details.
+
+Usage:
+  ollama help [command] [flags]
+
+Flags:
+  -h, --help   help for help
+```
+

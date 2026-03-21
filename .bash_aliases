@@ -25,8 +25,10 @@ fi
 # shortcuts
 alias l='ls -A'
 alias ll='ls -lAinh'
-alias v='vim -p'
 alias nv='nvim -p'
+alias v='nv'
+# switching to neovim :0
+# alias v='vim -p'
 alias o='open'
 alias ..='cd ..'
 alias ...='cd ../..'
@@ -47,7 +49,7 @@ alias fastfetch='fastfetch --color yellow'
 alias icat="kitten icat"
 alias ram-info='inxi -mxxz'
 alias rm-exe='rm $(find -mindepth 1 -executable -print)'
-# alias old-find='find'
+alias old-find='find'
 alias find='fdfind'
 alias qr-wifi='sudo nmcli dev wifi show-password'
 
