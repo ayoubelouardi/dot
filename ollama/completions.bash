@@ -1,15 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# TAB completion for ollama CLI.
+# IMPORTANT: 
 #
-# Install in /etc/bash_completion.d/, or in your home dir
-# and `source <this file>` in your .bashrc.
+# for this script to work you should add this at the end of your .bashrc file.
+# and create a directory in .config/ with the name ollama/ and put this file
+# in it with this name `completions.bash`
 #
-# Needs `jq` and `curl`.
-#
-# Install `pup` [https://github.com/ericchiang/pup] to
-# get ollama library completion.
-#
+# ollama completion
+# if [ -f ~/.config/ollama/completions.bash ]; then
+#     source ~/.config/ollama/completions.bash
+# fi
+
+# LICENCE:  MIT 2026 
+# AUTHOR:   Ayoub El Ouardi
+# if you want the latest version you will find it in my github or gist
+# https://github.com/ayoubelouardi
+# this is an updated version of something i found online, I hope someone
+# in ollama merge something similare into the binary for linux so i don't 
+# have to keep updating it.
+# 
+# Install 'curl`, `jq` and `pup` [https://github.com/ericchiang/pup] 
+# 
+
+# SETTINGS: 
 # A few environment variables control processing:
 #   _OLLAMA_MODEL_TTL    
 #       Minimum number of seconds between model fetches from the
