@@ -28,3 +28,18 @@ fi
 
 # .bash_profile
 . "$HOME/.cargo/env"
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+case ":$PATH:" in
+    *:/home/ia/.juliaup/bin:*)
+        ;;
+
+    *)
+        export PATH=/home/ia/.juliaup/bin${PATH:+:${PATH}}
+        ;;
+esac
+
+# <<< juliaup initialize <<<

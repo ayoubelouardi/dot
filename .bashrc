@@ -147,8 +147,29 @@ if [ -f ~/.config/ollama/completions.bash ]; then
     source ~/.config/ollama/completions.bash
 fi
 
+# zeroclaw completion
+if [ -f ~/.zeroclaw/completions.bash ]; then
+    source ~/.zeroclaw/completions.bash
+fi
+
 # zellij completion
 if [ -f ~/.config/zellij/completions.bash ]; then
     source ~/.config/zellij/completions.bash
 fi
+
 . "$HOME/.cargo/env"
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+case ":$PATH:" in
+    *:/home/ia/.juliaup/bin:*)
+        ;;
+
+    *)
+        export PATH=/home/ia/.juliaup/bin${PATH:+:${PATH}}
+        ;;
+esac
+
+# <<< juliaup initialize <<<

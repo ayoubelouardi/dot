@@ -48,6 +48,7 @@ DIRECTORIES=(
     "zellij"
     "ollama"
     "KeyboardChatteringFix-Linux"
+    "htop"
 )
 
 echo "Installing dotfiles from $DOTFILES_DIR into $HOME..."

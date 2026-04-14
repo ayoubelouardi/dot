@@ -1,63 +1,62 @@
 #!/usr/bin/env bash
 
-# IMPORTANT: 
-#
-# for this script to work you should add this at the end of your .bashrc file.
-# and create a directory in .config/ with the name ollama/ and put this file
-# in it with this name `completions.bash`
-#
-# ollama completion
-# if [ -f ~/.config/ollama/completions.bash ]; then
-#     source ~/.config/ollama/completions.bash
-# fi
-
-# LICENCE:  MIT 2026 
-# AUTHOR:   Ayoub El Ouardi
-# if you want the latest version you will find it in my github or gist
-# https://github.com/ayoubelouardi
-# this is an updated version of something i found online, I hope someone
-# in ollama merge something similare into the binary for linux so i don't 
-# have to keep updating it.
-# 
-# Install 'curl`, `jq` and `pup` [https://github.com/ericchiang/pup] 
-# 
-
-# SETTINGS: 
-# A few environment variables control processing:
-#   _OLLAMA_MODEL_TTL    
-#       Minimum number of seconds between model fetches from the
-#       ollama server. Default 300s.
-#   _OLLAMA_LIBRARY_TTL
-#       Minimum number of seconds between model fetches from the
-#       ollama library.  Default 3600s.
-#   _OLLAMA_QUANTS_TTL
-#       Minimum number of seconds between quant fetches from the
-#       ollama library.  Default 300s.
-#   _OLLAMA_LIBRARY_LIMIT
-#       Maximum number of models to retrieve from the ollama
-#       library.  Default 10.
-#   _OLLAMA_LIBRARY_SORT
-#       Sort order for models fetched from the ollama library.
-#       One of [newest popular featured].  Default newest.
-#   _OLLAMA_QUANTS
-#       The list of quantizations used for completion for
-#       `ollama create --quantize`.
-
 if [ -z "$BASH_VERSION" ] ; then
   echo "$0: Need bash"
   return 1
 fi
-if ! command -v jq >&- ; then
-  echo "$0: Need jq for model completion"
-  return 1
-fi
-if ! command -v curl >&- ; then
-  echo "$0: Need curl for model completion"
-  return 1
-fi
 
-# restore post exec hook
+command -v jq >&- || { echo "$0: Need jq for model completion" >&2; }
+command -v curl >&- || { echo "$0: Need curl for model completion" >&2; }
+
 PROMPT_COMMAND=${PROMPT_COMMAND//_ollama_post_exec ; /}
+
+_OLLAMA_COMMANDS="serve create show run stop pull push signin signout list ps cp rm launch help"
+_OLLAMA_QUANTS="Q4_0 Q4_1 Q4_1_F16 Q8_0 Q4_K_S Q4_K_M F16"
+_OLLAMA_LAUNCH_AGENTS="claude cline codex droid opencode openclaw pi"
+
+_OLLAMA_SERVE_OPTS="-h --help --nowordwrap"
+_OLLAMA_CREATE_OPTS="-h --help --experimental -f --file -q --quantize"
+_OLLAMA_SHOW_OPTS="-h --help --license --modelfile --parameters --system --template -v --verbose"
+_OLLAMA_RUN_OPTS="-h --help --dimensions --experimental --experimental-websearch --experimental-yolo --format --hidethinking --insecure --keepalive --nowordwrap --think --truncate --verbose --width --height --steps --seed --negative"
+_OLLAMA_PULL_OPTS="-h --help --insecure"
+_OLLAMA_PUSH_OPTS="-h --help --insecure"
+_OLLAMA_DEFAULT_OPTS="-h --help"
+
+_ollama_desc(){
+  case "$1" in
+    serve|start)  echo "Start Ollama" ;;
+    create)       echo "Create a model" ;;
+    show)        echo "Show information for a model" ;;
+    run)         echo "Run a model" ;;
+    stop)        echo "Stop a running model" ;;
+    pull)        echo "Pull a model from a registry" ;;
+    push)        echo "Push a model to a registry" ;;
+    signin)      echo "Sign in to ollama.com" ;;
+    signout)     echo "Sign out from ollama.com" ;;
+    list|ls)     echo "List models" ;;
+    ps)          echo "List running models" ;;
+    cp)          echo "Copy a model" ;;
+    rm)          echo "Remove a model" ;;
+    launch)      echo "Launch the Ollama menu or an integration" ;;
+    help)        echo "Help about any command" ;;
+    *)           echo "" ;;
+  esac
+}
+
+_ollama_help(){
+  local cmd
+  printf "\nUsage: ollama [command]\n\n"
+  printf "Available Commands:\n"
+  for cmd in $_OLLAMA_COMMANDS ; do
+    printf "  %-12s %s\n" "$cmd" "$(_ollama_desc "$cmd")"
+  done
+  printf "\nFlags:\n"
+  printf "  %-12s %s\n" "-h, --help" "help for ollama"
+  printf "  %-12s %s\n" "--nowordwrap" "Don't wrap words to the next line automatically"
+  printf "  %-12s %s\n" "--verbose" "Show timings for response"
+  printf "  %-12s %s\n" "-v, --version" "Show version information"
+  printf "\nUse \"ollama [command] --help\" for more information about a command.\n"
+}
 
 _OLLAMA_MODELS=""
 _OLLAMA_LIBRARY=""
@@ -65,28 +64,12 @@ _OLLAMA_MODEL_TTL=${_OLLAMA_MODEL_TTL-300}
 _OLLAMA_LIBRARY_TTL=${_OLLAMA_LIBRARY_TTL-3600}
 _OLLAMA_QUANTS_TTL=${_OLLAMA_QUANTS_TTL-300}
 _OLLAMA_LIBRARY_LIMIT=${_OLLAMA_LIBRARY_LIMIT-10}
-_OLLAMA_LIBRARY_SORT=${_OLLAMA_LIBRARY_SORT-newest}     # newest popular featured
+_OLLAMA_LIBRARY_SORT=${_OLLAMA_LIBRARY_SORT-newest}
 _OLLAMA_MODELS_TIMESTAMP=0
 _OLLAMA_LIBRARY_TIMESTAMP=0
-_OLLAMA_QUANTS_ALL=(
-    F32 F16 BF16
-    Q2_K Q2_K_S
-    Q3_K_S Q3_K_M Q3_K_L
-    Q4_0 Q4_1 Q4_1_F16 Q4_K_S Q4_K_M
-    Q5_0 Q5_1 Q5_K_S Q5_K_M
-    Q6_K
-    Q8_0
-    IQ1_S IQ1_M
-    IQ2_XXS IQ2_XS IQ2_S IQ2_M
-    IQ3_XXS IQ3_XS IQ3_S
-    IQ4_NL IQ4_XS
-)
-# The above is all that is supported, but just use a select few for completion.
-#_OLLAMA_QUANTS=${_OLLAMA_QUANTS-${_OLLAMA_QUANTS_ALL[@]}}
-_OLLAMA_QUANTS=${_OLLAMA_QUANTS-Q4_0 Q4_1 Q4_1_F16 Q8_0 Q4_K_S Q4_K_M F16}
 
 _ollama_fetch_models(){
-  _OLLAMA_MODELS="$(curl -s ${OLLAMA_HOST-localhost:11434}/api/tags | jq -r '.models[].name')"
+  _OLLAMA_MODELS="$(curl -s ${OLLAMA_HOST-localhost:11434}/api/tags 2>/dev/null | jq -r '.models[].name' 2>/dev/null)"
 }
 
 _ollama_maybe_fetch_models(){
@@ -95,220 +78,73 @@ _ollama_maybe_fetch_models(){
   _OLLAMA_MODELS_TIMESTAMP=$(date +%s)
 }
 
-_ollama_fetch_library_models(){
-  ! command -v pup >&- && return 0
-  _OLLAMA_LIBRARY=$(echo "{$(echo $(curl -s https://ollama.com/library?sort=${_OLLAMA_LIBRARY_SORT-newest} | 
-      pup '#repo ul li a' | 
-      sed -ne 's@^<a href="/library/\([^"]*\)".*@"\1:":{"base":"/library/\1"}@p' |
-      head -${_OLLAMA_LIBRARY_LIMIT-10}) |
-      tr ' ' ,)}")
-}
-
-_ollama_maybe_fetch_library_models(){
-  [ $[ $(date +%s) - ${_OLLAMA_LIBRARY_TIMESTAMP-0} ] -lt $_OLLAMA_LIBRARY_TTL ] && return 0
-  _ollama_fetch_library_models
-  _OLLAMA_LIBRARY_TIMESTAMP=$(date +%s)
-}
-
-_ollama_maybe_fetch_library(){
-  local model completions timestamp library quants
-  ! command -v pup >&- && return 0
-  [ -z "$_OLLAMA_LIBRARY" ] && {
-    _ollama_maybe_fetch_library_models
-    [ -z "$_OLLAMA_LIBRARY" ] && return 0
-  }
-  # we might have to fetch quants.  in the case where the user has typed
-  # enough of the model name to uniquely identify it, we can do the fetch.
-  model=${COMP_LINE:0:COMP_POINT}
-  model=${model##* }
-  [[ "$model" == *:* ]] && model=${model%%:*}: || model=${model%%:*}
-  completions=( $(compgen -W "$(jq -rn "$_OLLAMA_LIBRARY|keys|.[]")" -- "$model") )
-  [ ${#completions[*]} -ne 1 ] && return 0
-  model="${completions[0]}"
-  # skip if quants were retrieved recently
-  timestamp="$(jq -rn "$_OLLAMA_LIBRARY|.\"$model\".timestamp")"
-  [ -z "$timestamp" -o "$timestamp" == null ] && timestamp=0
-  [ $[ $(date +%s) - $timestamp ] -lt $_OLLAMA_QUANTS_TTL ] && return 0
-  library="$(jq -rn "$_OLLAMA_LIBRARY|.\"$model\".base")"
-  [ -z "$library" -o "$library" == null ] && return 0
-  quants="$(echo $(curl -s https://ollama.com${library}/tags | pup 'section div div div div div div text{}'))"
-  [ -z "$quants" -o "$quants" == null ] && return 0
-  # add the quants prefixed by the model
-  quants=$(eval echo $model{${quants// /,}})
-  _OLLAMA_LIBRARY=$(jq -cn "$_OLLAMA_LIBRARY*{\"$model\":{\"quants\":\"$quants\",\"timestamp\":$(date +%s)}}")
-}
-
-# ":" is a word break character by default, which messes
-# completion attempts for models with tags.  so here we
-# massage the potential matches so that bash presents the
-# appropriate words.  expects an array of completion
-# alternatives in $_OLLAMA_COMPLETE.
-_ollama_massage_completions(){
-  local comp model tmp
-  comp=${COMP_LINE:0:COMP_POINT}
-  comp=${comp##* }
-  [[ "$comp" != *:* ]] && return 0
-  model=${comp%:*}:
-  tmp=()
-  for i in ${_OLLAMA_COMPLETE[*]} ; do
-    [ "${i:0:${#comp}}" == "$comp" ] && {
-      t=${i:${#model}}
-      [ -n "$t" ] && tmp+=($t)
-    }
-  done
-  _OLLAMA_COMPLETE=("${tmp[@]}")
-}
-
 _ollama_complete_models(){
   [ -z "$_OLLAMA_MODELS" ] && return 0
-  read -a _OLLAMA_COMPLETE <<< $(tr '\n' ' ' <<< $_OLLAMA_MODELS)
-  _ollama_massage_completions
-  compgen -W "${_OLLAMA_COMPLETE[*]}" -- "$1"
+  local -a complete
+  read -a complete <<< $(tr '\n' ' ' <<< $_OLLAMA_MODELS)
+  compgen -W "${complete[*]}" -- "$1"
 }
 
 _ollama_complete_library(){
-  local model
   [ -z "$_OLLAMA_LIBRARY" ] && return 0
-  model=${COMP_LINE:0:COMP_POINT}
-  model=${model##* }
-  [[ -z "$model" || "$model" != *:* ]] && {
-    compgen -W "$(jq -rn "$_OLLAMA_LIBRARY|keys|.[]")" -- "$model"
-    return 0
-  }
-  model="${model%%:*}:"
-  _OLLAMA_COMPLETE=( $(jq -rn "$_OLLAMA_LIBRARY|.\"$model\".quants") )
-  _ollama_massage_completions
-  compgen -W "${_OLLAMA_COMPLETE[*]}" -- "$1"
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  compgen -W "$(echo $_OLLAMA_LIBRARY | jq -r 'keys[]' 2>/dev/null)" -- "$cur"
 }
 
-_ollama() {
-  local word verb
+_ollama(){
+  local cur prev
+  COMPREPLY=()
+  cur=${COMP_WORDS[COMP_CWORD]}
+  prev=${COMP_WORDS[COMP_CWORD-1]}
   _ollama_maybe_fetch_models
-  for word in ${COMP_WORDS[@]:1} ; do
-    [[ "$word" != -* ]] && {
-      verb="$word"
-      break
-    }
-  done
-  [ "$verb" == "$2" -a "${COMP_LINE:${#COMP_LINE}-1}" != " " ] && verb="*"
-  case "$verb" in
-    serve|start)
-            COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
-            ;;
-    create)
-            if [ "${COMP_WORDS[COMP_CWORD-1]}" == --quantize ] ; then
-              COMPREPLY=( $(echo "$_OLLAMA_QUANTS" | tr ' ' '\n' | grep -i "^$2") ) ;
-            elif [ "${COMP_WORDS[COMP_CWORD-1]}" == --file ] ; then
-              COMPREPLY=( $(compgen -f -o filenames -- "$2") ) ;
-            else
-              COMPREPLY=( $(compgen -W "--help --experimental --file --quantize" -- "$2") ) ;
-            fi
-            _OLLAMA_FLUSH_MODELS_CACHE=1
-            ;;
-    show)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help --license --modelfile --parameters --system --template -v --verbose" -- "$2") ) ;
-            else
-              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
-            fi
-            ;;
-    run)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help --dimensions --experimental --experimental-websearch --experimental-yolo --format --hidethinking --insecure --keepalive --nowordwrap --think --truncate --verbose --width --height --steps --seed --negative" -- "$2") ) ;
-            elif [ "${COMP_WORDS[COMP_CWORD-1]}" == --format ] ; then
-              COMPREPLY=( $(compgen -W "json" -- "$2") ) ;
-            else
-              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
-            fi
-            ;;
-    stop)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
-            else
-              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
-            fi
-            ;;
 
+  if [ ${COMP_CWORD} -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "$_OLLAMA_COMMANDS" -- "$cur") )
+    return 0
+  fi
+
+  if [[ "$cur" == -* ]]; then
+    case "${COMP_WORDS[1]}" in
+      serve|start)  COMPREPLY=( $(compgen -W "$_OLLAMA_SERVE_OPTS" -- "$cur") ); return 0 ;;
+      create)        COMPREPLY=( $(compgen -W "$_OLLAMA_CREATE_OPTS" -- "$cur") ); return 0 ;;
+      show)          COMPREPLY=( $(compgen -W "$_OLLAMA_SHOW_OPTS" -- "$cur") ); return 0 ;;
+      run)           COMPREPLY=( $(compgen -W "$_OLLAMA_RUN_OPTS" -- "$cur") ); return 0 ;;
+      pull)          COMPREPLY=( $(compgen -W "$_OLLAMA_PULL_OPTS" -- "$cur") ); return 0 ;;
+      push)         COMPREPLY=( $(compgen -W "$_OLLAMA_PUSH_OPTS" -- "$cur") ); return 0 ;;
+      stop|signin|signout|list|ls|ps|cp|rm|launch|help)
+                      COMPREPLY=( $(compgen -W "$_OLLAMA_DEFAULT_OPTS" -- "$cur") ); return 0 ;;
+    esac
+    return 0
+  fi
+
+  case "$prev" in
+    --format)     COMPREPLY=( $(compgen -W "json" -- "$cur") ); return 0 ;;
+    --think)      COMPREPLY=( $(compgen -W "true false high medium low" -- "$cur") ); return 0 ;;
+    --quantize)   COMPREPLY=( $(echo "$_OLLAMA_QUANTS" | tr ' ' '\n' | grep -i "^$cur") ); return 0 ;;
+    --file|-f)    COMPREPLY=( $(compgen -f -- "$cur") ); return 0 ;;
+    --model)      _ollama_complete_models "$cur"; return 0 ;;
+    --keepalive|--dimensions|--width|--height|--steps|--seed|--negative|--negative)
+                      return 0 ;;
+  esac
+
+  case "${COMP_WORDS[1]}" in
+    serve|start|signin|signout|help)  COMPREPLY=() ;;
+    create|show|run|stop|push|cp|rm|list|ls|ps)
+      _ollama_complete_models "$cur" ;;
     pull)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help --insecure" -- "$2") ) ;
-            else
-              _ollama_maybe_fetch_library
-              COMPREPLY=( $(_ollama_complete_library "$2") ) ;
-            fi
-            _OLLAMA_FLUSH_MODELS_CACHE=1
-            ;;
-    push)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help --insecure" -- "$2") ) ;
-            else
-              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
-            fi
-            ;;
-    list|ls)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
-            else
-              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
-            fi
-            ;;
-    ps)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
-            else
-              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
-            fi
-            ;;
-    cp)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
-            else
-              local prev
-              prev="${COMP_WORDS[COMP_CWORD-1]}"
-              if [[ "$prev" != "cp" && "$prev" != "--help" ]] ; then
-                COMPREPLY=( $(compgen -W "$(echo $_OLLAMA_MODELS | tr ' ' '\n' | grep -v "^${prev}$")" -- "$2") ) ;
-              else
-                COMPREPLY=( $(_ollama_complete_models "$2") ) ;
-              fi
-            fi
-            _OLLAMA_FLUSH_MODELS_CACHE=1
-            ;;
-    rm)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
-            else
-              COMPREPLY=( $(_ollama_complete_models "$2") ) ;
-            fi
-            _OLLAMA_FLUSH_MODELS_CACHE=1
-            ;;
+      _ollama_complete_library "$cur" ;;
     launch)
-            if [ "${2:0:1}" == - ] ; then
-              COMPREPLY=( $(compgen -W "--help --config --model --yes -y" -- "$2") ) ;
-            else
-              COMPREPLY=( $(compgen -W "claude cline codex droid opencode openclaw pi" -- "$2") ) ;
-            fi
-            ;;
-    signin)
-            COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
-            ;;
-    signout)
-            COMPREPLY=( $(compgen -W "--help" -- "$2") ) ;
-            ;;
-    help)
-            COMPREPLY=( $(compgen -W "serve create show run stop pull push signin signout list ps cp rm launch help" -- "$2") )
-            ;;
-    *)      COMPREPLY=( $(compgen -W "serve create show run stop pull push signin signout list ps cp rm launch help" -- "$2") )
-            ;;
+      COMPREPLY=( $(compgen -W "$_OLLAMA_LAUNCH_AGENTS" -- "$cur") )
   esac
 }
 
 _ollama_post_exec(){
-  [ "$_OLLAMA_FLUSH_MODELS_CACHE" == 1 ] && {
+  [ "$_OLLAMA_FLUSH_MODELS_CACHE" = 1 ] && {
     _OLLAMA_MODELS=""
     _OLLAMA_MODELS_TIMESTAMP=0
     _OLLAMA_FLUSH_MODELS_CACHE=0
   }
-  [ "$_OLLAMA_FLUSH_LIBRARY_CACHE" == 1 ] && {
+  [ "$_OLLAMA_FLUSH_LIBRARY_CACHE" = 1 ] && {
     _OLLAMA_LIBRARY=""
     _OLLAMA_LIBRARY_TIMESTAMP=0
     _OLLAMA_FLUSH_LIBRARY_CACHE=0
@@ -317,4 +153,16 @@ _ollama_post_exec(){
 
 PROMPT_COMMAND="_ollama_post_exec ; $PROMPT_COMMAND"
 
-complete -F _ollama ollama
+_ollama_real() {
+  command ollama "$@"
+}
+
+ollama() {
+  case "$1" in
+    help|"")  _ollama_help ;;
+    *)         _ollama_real "$@" ;;
+  esac
+}
+
+complete -o bashdefault -o default -o nospace -F _ollama ollama 2>/dev/null \
+  || complete -o default -o nospace -F _ollama ollama
