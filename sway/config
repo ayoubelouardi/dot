@@ -252,6 +252,9 @@ bar {
     # The default just shows the current date and time.
     status_command while ~/.config/sway/status.sh; do sleep 1; done
 
+    # Pango font required for <span> markup in status output
+    font pango:DejaVu Sans Mono 10
+
     colors {
         background          #0b0b0f
             statusline          #f5b642
@@ -286,6 +289,8 @@ exec swaync
 bindsym $mod+Shift+n exec swaync-client -t -swk
 
 # window appearance
+font pango:JetBrains Mono 9
+
 default_border pixel 3
 default_floating_border pixel 3
 smart_borders on
