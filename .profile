@@ -43,3 +43,4 @@ case ":$PATH:" in
 esac
 
 # <<< juliaup initialize <<<
+export WLR_BACKEND=x11
