@@ -240,6 +240,8 @@ bindsym --locked XF86MonBrightnessDown exec ~/.config/sway/system_keys.sh bright
 
 # Screenshot with notifications
 bindsym Print exec ~/.config/sway/system_keys.sh screenshot
+bindsym Shift+Print exec ~/.config/sway/system_keys.sh screenshot-area
+bindsym $mod+Shift+s exec ~/.config/sway/system_keys.sh screenshot-area
 
 #
 # Status Bar:

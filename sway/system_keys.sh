@@ -139,7 +139,21 @@ case "$1" in
             log "Screenshot failed: $FILE"
         fi
         ;;
+    screenshot-area)
+        if ! cmd_exists grim || ! cmd_exists slurp || ! cmd_exists wl-copy; then
+            notify "Screenshot" "Missing grim, slurp, or wl-copy" "camera-photo" "critical"
+            log "Missing dependencies for area screenshot"
+            exit 1
+        fi
+        # Area screenshot to clipboard
+        if grim -g "$(slurp)" - | wl-copy; then
+            notify "Screenshot" "Area copied to clipboard" "camera-photo" "normal"
+            log "Area screenshot copied to clipboard"
+        else
+            log "Area screenshot cancelled or failed"
+        fi
+        ;;
     *)
-        echo "Usage: $0 {volume-up|volume-down|volume-mute|mic-mute|brightness-up|brightness-down|screenshot}"
+        echo "Usage: $0 {volume-up|volume-down|volume-mute|mic-mute|brightness-up|brightness-down|screenshot|screenshot-area}"
         ;;
     esac
