@@ -4,17 +4,12 @@ NOT_DURATION=500
 LOGFILE="${HOME}/.cache/system_keys.log"
 mkdir -p "$(dirname "$LOGFILE")"
 
-# notify wrapper: title, body, [icon], [urgency]
 notify() {
     local title="$1" body="$2" icon="$3" urgency="${4:-normal}"
-    if command -v notify-send >/dev/null 2>&1; then
-        if [ -n "$icon" ]; then
-            notify-send -t "$NOT_DURATION" -u "$urgency" -i "$icon" "$title" "$body"
-        else
-            notify-send -t "$NOT_DURATION" -u "$urgency" "$title" "$body"
-        fi
+    if [ -n "$icon" ]; then
+        notify-send -t "$NOT_DURATION" -u "$urgency" -i "$icon" "$title" "$body"
     else
-        printf '%s: %s\n' "$title" "$body"
+        notify-send -t "$NOT_DURATION" -u "$urgency" "$title" "$body"
     fi
 }
 
