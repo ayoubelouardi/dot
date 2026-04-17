@@ -13,6 +13,8 @@
   magenta : #ff79c6;
   cyan    : #50fa7b;
 
+  separator: #444444;
+
   accent: @yellow;
   urgent: @red;
 }

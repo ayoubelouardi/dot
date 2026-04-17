@@ -24,13 +24,6 @@ cheat.sh,
 exercism,
 kitty,
 sway[allOfThem],
-(sway app for utility
-rofi
-grim
-pulseaudio
-brightnessctl
-)
-rofi,
 tt, [
 sudo curl -L https://github.com/lemnos/tt/releases/download/v0.4.2/tt-linux -o /usr/local/bin/tt && sudo chmod +x /usr/local/bin/tt
 sudo curl -o /usr/share/man/man1/tt.1.gz -L https://github.com/lemnos/tt/releases/download/v0.4.2/tt.1.gz
@@ -43,6 +36,24 @@ curl -fsSL https://iroh.computer/sendme.sh | sh
     ]
 ,
 inxi,
+
+### sway ecosystem dependencies
+- sway (window manager)
+- swaylock (screen locker)
+- swayidle (idle daemon)
+- swaync (notification daemon)
+- kitty (terminal)
+- rofi (app launcher)
+- zellij (terminal multiplexer)
+- tmux (terminal multiplexer)
+grim (screenshot utility)
+- pactl/pulseaudio (audio control)
+- notify-send (libnotify, notifications)
+- brightnessctl (brightness control)
+- upower (battery info)
+- network-manager / nmcli (network management)
+- dbus (desktop bus)
+- JetBrains Mono (font)
 
 
 - [x] add sway config.
