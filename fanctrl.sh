@@ -1,6 +1,16 @@
 #!/bin/bash
 
 FAN_CONTROL_PATH="/proc/acpi/ibm/fan"
+IS_GUI=0
+
+fail() {
+    if [[ $IS_GUI -eq 1 ]]; then
+        zenity --error --text="$1" 2>/dev/null || echo "$1" >&2
+    else
+        echo "$1" >&2
+    fi
+    exit 1
+}
 
 echo "Select mode:"
 echo "  1) TUI (Terminal)"
@@ -11,21 +21,14 @@ read -rp "Choose mode [1]: " MODE
 MODE="${MODE:-1}"
 
 if [[ "$MODE" == "2" ]]; then
-    if ! command -v zenity &>/dev/null; then
-        echo "zenity is not installed. Install it first: sudo apt install zenity"
-        exit 1
-    fi
+    IS_GUI=1
+    command -v zenity &>/dev/null || fail "zenity is not installed. Install it first: sudo apt install zenity"
+fi
 
-    if [[ $EUID -ne 0 ]]; then
-        zenity --error --text="Run as root (sudo)"
-        exit 1
-    fi
+[[ $EUID -eq 0 ]] || fail "This script must be run as root. Use: sudo $0"
+[[ -w "$FAN_CONTROL_PATH" ]] || fail "Cannot access $FAN_CONTROL_PATH. Is thinkpad_acpi loaded with fan_control=1?"
 
-    if [[ ! -w $FAN_CONTROL_PATH ]]; then
-        zenity --error --text="Cannot access $FAN_CONTROL_PATH. Is thinkpad_acpi loaded with fan_control=1?"
-        exit 1
-    fi
-
+if [[ $IS_GUI -eq 1 ]]; then
     CHOICE=$(zenity --list \
       --title="ThinkPad Fan Control" \
       --text="Choose fan level:" \
@@ -38,20 +41,10 @@ if [[ "$MODE" == "2" ]]; then
       FALSE "disengaged" "Full Blast (Emergency Only)")
 
     if [[ -n "$CHOICE" ]]; then
-        echo "level $CHOICE" | sudo tee "$FAN_CONTROL_PATH" > /dev/null
+        echo "level $CHOICE" > "$FAN_CONTROL_PATH" || fail "Failed to set fan level to $CHOICE"
         zenity --info --text="Fan set to: $CHOICE"
     fi
 else
-    if [[ $EUID -ne 0 ]]; then
-        echo "This script must be run as root. Use: sudo $0"
-        exit 1
-    fi
-
-    if [[ ! -w $FAN_CONTROL_PATH ]]; then
-        echo "Cannot access $FAN_CONTROL_PATH. Is thinkpad_acpi loaded with fan_control=1?"
-        exit 1
-    fi
-
     echo "Fan Speed Control for ThinkPad"
     echo "Choose a fan level:"
     echo "  0 = off"
@@ -68,8 +61,13 @@ else
         exit 0
     fi
 
+    VALID_LEVELS="0 1 2 3 4 5 6 7 auto disengaged"
+    if [[ ! " $VALID_LEVELS " =~ " $LEVEL " ]]; then
+        fail "Invalid level: $LEVEL. Valid: $VALID_LEVELS"
+    fi
+
     echo "Setting fan level to: $LEVEL"
-    echo "level $LEVEL" > "$FAN_CONTROL_PATH"
+    echo "level $LEVEL" > "$FAN_CONTROL_PATH" || fail "Failed to set fan level to $LEVEL"
     sleep 0.5
     cat "$FAN_CONTROL_PATH"
 fi
