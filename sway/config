@@ -243,6 +243,9 @@ bindsym Print exec ~/.config/sway/system_keys.sh screenshot
 bindsym Shift+Print exec ~/.config/sway/system_keys.sh screenshot-area
 bindsym $mod+Shift+s exec ~/.config/sway/system_keys.sh screenshot-area
 
+# Screen locker (Super+Escape)
+bindsym $mod+Escape exec swaylock -f -c 000000
+
 #
 # Status Bar:
 #
