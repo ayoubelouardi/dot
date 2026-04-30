@@ -1,5 +1,6 @@
 _ollama() {
   local cur prev cmd opts commands integrations
+  local models
 
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
@@ -8,6 +9,12 @@ _ollama() {
 
   commands="serve start create show run stop pull push signin signout list ls ps cp rm launch help"
   integrations="claude cline codex droid opencode openclaw clawdbot moltbot pi"
+
+  _ollama_models() {
+    local models
+    models=$(ollama list 2>/dev/null | awk 'NR>1 {print $1}')
+    COMPREPLY=( $( compgen -W "${models}" -- "${cur}" ) )
+  }
 
   if [ "${#COMP_WORDS[@]}" -eq 2 ]; then
     case "${cur}" in
@@ -93,6 +100,11 @@ _ollama() {
       ;;
 
     show)
+      if [ "${COMP_CWORD}" -eq 2 ] && [ "${prev}" = "show" ]; then
+        _ollama_models
+        return 0
+      fi
+
       case "${cur}" in
         -*)
           opts="-h -v --help --verbose --license --modelfile --parameters --system --template"
@@ -104,6 +116,11 @@ _ollama() {
       ;;
 
     run)
+      if [ "${COMP_CWORD}" -eq 2 ] && [ "${prev}" = "run" ]; then
+        _ollama_models
+        return 0
+      fi
+
       case "${prev}" in
         --format)
           COMPREPLY=( $( compgen -W "json" -- "${cur}" ) )
@@ -125,7 +142,16 @@ _ollama() {
       return 0
       ;;
 
-    stop|cp|rm|list|ls|ps|signin|signout)
+    stop|cp|rm|list|ls|signin|signout)
+      case "${cmd}" in
+        stop|cp|rm|list|ls)
+          if [ "${COMP_CWORD}" -eq 2 ]; then
+            _ollama_models
+            return 0
+          fi
+          ;;
+      esac
+
       case "${cur}" in
         -*)
           COMPREPLY=( $( compgen -W "-h --help" -- "${cur}" ) )
