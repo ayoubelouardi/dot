@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e  # Exit on error
 
-# Base directory of the dotfiles repo
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Base directory of the dotfiles repo (parent of script/)
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # insatll base
 sudo apt update -y
@@ -49,6 +49,8 @@ DIRECTORIES=(
     "ollama"
     "KeyboardChatteringFix-Linux"
     "htop"
+    "fastfetch"
+    "swaync"
 )
 
 echo "Installing dotfiles from $DOTFILES_DIR into $HOME..."

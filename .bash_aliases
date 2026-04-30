@@ -49,7 +49,7 @@ alias fastfetch='fastfetch --color yellow'
 alias icat="kitten icat"
 alias ram-info='inxi -mxxz'
 alias rm-exe='rm $(/usr/bin/find -mindepth 1 -type f -executable -print)'
-alias old-find='find'
+alias old-find='/usr/bin/find'
 alias find='fdfind'
 alias qr-wifi='sudo nmcli dev wifi show-password'
 
@@ -92,16 +92,16 @@ alias editvim='vim ~/.vimrc'
 alias editnvim='nvim ~/.config/nvim/'
 alias editalias='vim ~/.bash_aliases'
 alias editbash='vim ~/.bashrc'
-alias fanctrl='sudo bash ~/.config/dot/fanctrl.sh'
+alias fanctrl='sudo bash ~/.config/dot/script/fanctrl.sh'
 
 # update
-alias yupdate='sudo bash ~/.config/dot/update.sh'
+alias yupdate='sudo bash ~/.config/dot/script/update.sh'
 
 
 # other
 alias rmswap='rm .*.swp'
 alias vps='bash ~/.config/dot/vps.sh'
-alias phone='bash ~/.config/dot/phone.sh'
+alias phone='bash ~/.config/dot/script/phone.sh'
 
 
 

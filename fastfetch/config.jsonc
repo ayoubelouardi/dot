@@ -1,0 +1,127 @@
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "version": 2,
+
+    // Colors based on sway theme
+    "colors": {
+        "green": "#f5b642",      // Primary accent (gold)
+        "yellow": "#f5b642",     // Accent
+        "red": "#ff5555",        // Urgent
+        "blue": "#444444",       // Secondary
+        "cyan": "#222222",       // Inactive
+        "key": "#f5b642",        // Keys color
+        "value": "#f5b642"       // Values color
+    },
+
+    "modules": [
+        {
+            "type": "title",
+            "key": "Title",
+            "format": "{user-name}@{host-name}",
+            "color": "#f5b642"
+        },
+        {
+            "type": "separator",
+            "string": "─"
+        },
+        {
+            "type": "os",
+            "key": "OS",
+            "color": "#f5b642"
+        },
+        {
+            "type": "host",
+            "key": "Host",
+            "color": "#f5b642"
+        },
+        {
+            "type": "kernel",
+            "key": "Kernel",
+            "color": "#f5b642"
+        },
+        {
+            "type": "uptime",
+            "key": "Uptime",
+            "color": "#f5b642"
+        },
+        {
+            "type": "packages",
+            "key": "Packages",
+            "color": "#f5b642"
+        },
+        {
+            "type": "shell",
+            "key": "Shell",
+            "color": "#f5b642"
+        },
+        {
+            "type": "display",
+            "key": "Display",
+            "color": "#f5b642"
+        },
+        {
+            "type": "de",
+            "key": "DE",
+            "color": "#f5b642"
+        },
+        {
+            "type": "wm",
+            "key": "WM",
+            "color": "#f5b642"
+        },
+        {
+            "type": "theme",
+            "key": "Theme",
+            "color": "#f5b642"
+        },
+        {
+            "type": "icons",
+            "key": "Icons",
+            "color": "#f5b642"
+        },
+        {
+            "type": "terminal",
+            "key": "Terminal",
+            "color": "#f5b642"
+        },
+        {
+            "type": "terminalfont",
+            "key": "Terminal Font",
+            "color": "#f5b642"
+        },
+        {
+            "type": "cpu",
+            "key": "CPU",
+            "color": "#f5b642"
+        },
+        {
+            "type": "gpu",
+            "key": "GPU",
+            "color": "#f5b642"
+        },
+        {
+            "type": "memory",
+            "key": "Memory",
+            "color": "#f5b642"
+        },
+        {
+            "type": "disk",
+            "key": "Disk",
+            "color": "#f5b642"
+        },
+        {
+            "type": "separator",
+            "string": "─"
+        },
+        {
+            "type": "break",
+            "text": ""
+        },
+        {
+            "type": "colors",
+            "key": "Colors",
+            "symbol": "circle",
+            "separator": " "
+        }
+    ]
+}
