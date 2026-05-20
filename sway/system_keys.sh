@@ -102,7 +102,7 @@ case "$1" in
         if [ "$NEW" -gt 100 ]; then
             NEW=100
         fi
-        brightnessctl set "${NEW}%" || log "brightnessctl set failed to ${NEW}%"
+        brightnessctl -n set "${NEW}%" || log "brightnessctl set failed to ${NEW}%"
         BRIGHT=$(get_brightness_raw)
         notify "Brightness" "Level: ${BRIGHT}" "display-brightness" "normal"
         log "Brightness changed from ${CURRENT}% to ${NEW}%"
@@ -115,10 +115,10 @@ case "$1" in
         fi
         CURRENT=$(get_brightness_num)
         NEW=$((CURRENT - 5))
-        if [ "$NEW" -lt 1 ]; then
-            NEW=1
+        if [ "$NEW" -lt 0 ]; then
+            NEW=0
         fi
-        brightnessctl set "${NEW}%" || log "brightnessctl set failed to ${NEW}%"
+        brightnessctl -n set "${NEW}%" || log "brightnessctl set failed to ${NEW}%"
         BRIGHT=$(get_brightness_raw)
         notify "Brightness" "Level: ${BRIGHT}" "display-brightness" "normal"
         log "Brightness changed from ${CURRENT}% to ${NEW}%"

@@ -74,6 +74,9 @@ fi
 # memory
 mem_used="$(free -h | awk '/Mem:/ {print $3 "/" $2}')"
 
+# storage
+storage_used="$(df -h / | awk 'NR==2 {print $3 "/" $2 " (" $5 ")"}')"
+
 # network
 ssid="$(nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1=="yes"{print $2; exit}')"
 if [[ -n "${ssid}" ]]; then
@@ -84,5 +87,5 @@ else
   net_str="❌"
 fi
 
-echo "💻 ${cpu_usage} ${cpu_temp}${SEP}🧠 ${mem_used}${SEP}${battery_icon}${SEP}${net_str}${SEP}<span foreground='#888888'>${date_str}</span>"
+echo "💻 ${cpu_usage} ${cpu_temp}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str}${SEP}<span foreground='#888888'>${date_str}</span>"
 
