@@ -12,6 +12,15 @@ write_fan_level() {
     fi
 }
 
+write_fan_watchdog() {
+    local timeout="$1"
+    if [[ -w "$FAN_CONTROL_PATH" ]]; then
+        echo "watchdog $timeout" > "$FAN_CONTROL_PATH"
+    else
+        echo "watchdog $timeout" | sudo tee "$FAN_CONTROL_PATH" > /dev/null
+    fi
+}
+
 read_fan_status() {
     if [[ -r "$FAN_CONTROL_PATH" ]]; then
         cat "$FAN_CONTROL_PATH"
@@ -88,6 +97,11 @@ if [[ "$MODE" == "2" ]]; then
 
     if [[ -n "$CHOICE" ]]; then
         if write_fan_level "$CHOICE"; then
+            if [[ "$CHOICE" == "auto" ]]; then
+                write_fan_watchdog 30
+            else
+                write_fan_watchdog 0
+            fi
             run_zenity --info --text="Fan set to: $CHOICE"
         else
             run_zenity --error --text="Failed to set fan level to $CHOICE"
@@ -122,6 +136,11 @@ else
 
     echo "Setting fan level to: $LEVEL"
     write_fan_level "$LEVEL" || { echo "Failed to set fan level to $LEVEL" >&2; exit 1; }
+    if [[ "$LEVEL" == "auto" ]]; then
+        write_fan_watchdog 30
+    else
+        write_fan_watchdog 0
+    fi
     sleep 0.5
     read_fan_status
 fi
