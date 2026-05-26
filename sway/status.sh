@@ -87,6 +87,28 @@ else
   net_str="❌"
 fi
 
+# network speed
+net_speed_str=""
+net_iface="$(ip -o route get 1 2>/dev/null | awk '{print $5; exit}')"
+if [[ -n "$net_iface" ]]; then
+  rx_now=$(cat "/sys/class/net/$net_iface/statistics/rx_bytes" 2>/dev/null || echo 0)
+  tx_now=$(cat "/sys/class/net/$net_iface/statistics/tx_bytes" 2>/dev/null || echo 0)
+  now=$(date +%s)
+  state_file="/tmp/sway-net-state"
+  if [[ -r "$state_file" ]]; then
+    read prev_ts prev_rx prev_tx < "$state_file"
+    elapsed=$(( now - prev_ts ))
+    if (( elapsed > 0 )); then
+      rx_bps=$(( (rx_now - prev_rx) / elapsed ))
+      tx_bps=$(( (tx_now - prev_tx) / elapsed ))
+      rx_fmt=$(awk -v b="$rx_bps" 'BEGIN{ if(b>1073741824) printf "%.1fG", b/1073741824; else if(b>1048576) printf "%.1fM", b/1048576; else if(b>1024) printf "%.0fK", b/1024; else printf "%dB", b }')
+      tx_fmt=$(awk -v b="$tx_bps" 'BEGIN{ if(b>1073741824) printf "%.1fG", b/1073741824; else if(b>1048576) printf "%.1fM", b/1048576; else if(b>1024) printf "%.0fK", b/1024; else printf "%dB", b }')
+      net_speed_str="↓${rx_fmt} ↑${tx_fmt}"
+    fi
+  fi
+  echo "$now $rx_now $tx_now" > "$state_file"
+fi
+
 # power consumption
 power_str=""
 
@@ -138,5 +160,5 @@ if [[ -z "$power_str" ]]; then
   fi
 fi
 
-echo "💻 ${cpu_usage} ${cpu_temp}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str}${SEP}${power_str}${SEP}<span foreground='#888888'>${date_str}</span>"
+echo "💻 ${cpu_usage} ${cpu_temp}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}<span foreground='#888888'>${date_str}</span>"
 
