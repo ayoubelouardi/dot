@@ -71,6 +71,16 @@ if [[ -r "$cpu_dir/temp" ]]; then
   cpu_temp="$(awk '{printf "%.0f°C", $1/1000}' "$cpu_dir/temp")"
 fi
 
+# fan rpm
+fan_rpm=""
+fan_file="/proc/acpi/ibm/fan"
+if [[ -r "$fan_file" ]]; then
+  fan_rpm="$(awk '/^speed:/ {print $2}' "$fan_file")"
+  if [[ -n "$fan_rpm" ]]; then
+    fan_rpm="🌀 ${fan_rpm}"
+  fi
+fi
+
 # memory
 mem_used="$(free -h | awk '/Mem:/ {print $3 "/" $2}')"
 
@@ -160,5 +170,5 @@ if [[ -z "$power_str" ]]; then
   fi
 fi
 
-echo "💻 ${cpu_usage} ${cpu_temp}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}<span foreground='#888888'>${date_str}</span>"
+echo "💻 ${cpu_usage} ${cpu_temp} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}<span foreground='#888888'>${date_str}</span>"
 
