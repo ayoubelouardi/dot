@@ -94,28 +94,6 @@ mem_used="$(free -h | awk '/Mem:/ {print $3 "/" $2}')"
 # storage
 storage_used="$(df -h / | awk 'NR==2 {print $3 "/" $2 " (" $5 ")"}')"
 
-# disk i/o
-disk_io=""
-disk_dev="nvme0n1"
-disk_stat="/sys/block/$disk_dev/stat"
-if [[ -r "$disk_stat" ]]; then
-  read _ _ sec_read _ _ _ sec_write _ < <(cat "$disk_stat")
-  now=$(date +%s)
-  state_file="/tmp/sway-disk-state"
-  if [[ -r "$state_file" ]]; then
-    read prev_ts prev_sec_read prev_sec_write < "$state_file"
-    elapsed=$(( now - prev_ts ))
-    if (( elapsed > 0 )); then
-      read_bps=$(( (sec_read - prev_sec_read) * 512 / elapsed ))
-      write_bps=$(( (sec_write - prev_sec_write) * 512 / elapsed ))
-      read_fmt=$(awk -v b="$read_bps" 'BEGIN{ if(b>1073741824) printf "%.1fG", b/1073741824; else if(b>1048576) printf "%.1fM", b/1048576; else if(b>1024) printf "%.0fK", b/1024; else printf "%dB", b }')
-      write_fmt=$(awk -v b="$write_bps" 'BEGIN{ if(b>1073741824) printf "%.1fG", b/1073741824; else if(b>1048576) printf "%.1fM", b/1048576; else if(b>1024) printf "%.0fK", b/1024; else printf "%dB", b }')
-      disk_io="$(printf "⬇%4s ⬆%4s" "$read_fmt" "$write_fmt")"
-    fi
-  fi
-  echo "$now $sec_read $sec_write" > "$state_file"
-fi
-
 # network
 ssid="$(nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1=="yes"{print $2; exit}')"
 if [[ -n "${ssid}" ]]; then
@@ -199,5 +177,5 @@ if [[ -z "$power_str" ]]; then
   fi
 fi
 
-echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used} ${disk_io}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}<span foreground='#888888'>${date_str}</span>"
+echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}<span foreground='#888888'>${date_str}</span>"
 
