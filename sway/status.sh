@@ -103,7 +103,7 @@ if [[ -n "$net_iface" ]]; then
       tx_bps=$(( (tx_now - prev_tx) / elapsed ))
       rx_fmt=$(awk -v b="$rx_bps" 'BEGIN{ if(b>1073741824) printf "%.1fG", b/1073741824; else if(b>1048576) printf "%.1fM", b/1048576; else if(b>1024) printf "%.0fK", b/1024; else printf "%dB", b }')
       tx_fmt=$(awk -v b="$tx_bps" 'BEGIN{ if(b>1073741824) printf "%.1fG", b/1073741824; else if(b>1048576) printf "%.1fM", b/1048576; else if(b>1024) printf "%.0fK", b/1024; else printf "%dB", b }')
-      net_speed_str="↓${rx_fmt} ↑${tx_fmt}"
+      net_speed_str="$(printf "↓%4s ↑%4s" "$rx_fmt" "$tx_fmt")"
     fi
   fi
   echo "$now $rx_now $tx_now" > "$state_file"
