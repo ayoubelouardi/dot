@@ -87,5 +87,56 @@ else
   net_str="❌"
 fi
 
-echo "💻 ${cpu_usage} ${cpu_temp}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str}${SEP}<span foreground='#888888'>${date_str}</span>"
+# power consumption
+power_str=""
+
+# Try RAPL data (from rapl-power systemd service)
+if [[ -r /tmp/sway-power ]]; then
+  read ts rest < /tmp/sway-power
+  now=$(date +%s)
+  if (( now - ts < 10 )); then
+    for kv in $rest; do
+      case "$kv" in
+        psys=*) power_str="🔌 ${kv#psys=}W"; break ;;
+      esac
+    done
+    if [[ -z "$power_str" ]]; then
+      for kv in $rest; do
+        case "$kv" in
+          package=*) power_str="💻 ${kv#package=}W"; break ;;
+        esac
+      done
+    fi
+  fi
+fi
+
+# Fallback: upower battery discharge rate
+if [[ -z "$power_str" && -n "$battery_devices" ]]; then
+  total_rate=0
+  any_discharging=false
+  while IFS= read -r dev; do
+    info="$(upower --show-info "$dev" 2>/dev/null || true)"
+    state="$(awk -F': *' '/state/ {print $2}' <<<"$info" | head -n1)"
+    rate="$(awk -F': *' '/energy-rate/ {gsub(/,/,".",$2); print $2}' <<<"$info" | head -n1)"
+    if [[ "$state" == "discharging" && -n "$rate" ]]; then
+      total_rate=$(awk -v t="$total_rate" -v r="$rate" 'BEGIN { printf "%.1f", t + r }')
+      any_discharging=true
+    fi
+  done <<< "$battery_devices"
+  if [[ "$any_discharging" == "true" ]]; then
+    power_str="🔋 ${total_rate}W"
+  fi
+fi
+
+# Fallback: CPU load estimation (i5-6300U TDP = 15W)
+if [[ -z "$power_str" ]]; then
+  tdp=15
+  load_pct=$(awk -v l="$load" -v c="$cores" 'BEGIN{ if(c>0) printf "%.2f", (l/c)*100; else print 0 }')
+  est=$(awk -v l="$load_pct" -v t="$tdp" 'BEGIN{ printf "%.1f", (l/100) * t }')
+  if (( $(awk -v e="$est" 'BEGIN{ print (e > 0) }') )); then
+    power_str="⚡ ${est}W"
+  fi
+fi
+
+echo "💻 ${cpu_usage} ${cpu_temp}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str}${SEP}${power_str}${SEP}<span foreground='#888888'>${date_str}</span>"
 

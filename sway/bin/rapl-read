@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+INTERVAL=2
+OUTPUT="/tmp/sway-power"
+
+DOMAINS=(
+    "psys=/sys/class/powercap/intel-rapl:1/energy_uj"
+    "package=/sys/class/powercap/intel-rapl:0/energy_uj"
+    "dram=/sys/class/powercap/intel-rapl:0:2/energy_uj"
+)
+
+declare -A PREV
+for entry in "${DOMAINS[@]}"; do
+    name="${entry%%=*}"
+    path="${entry#*=}"
+    PREV["$name"]=$(cat "$path" 2>/dev/null || echo "")
+done
+
+while true; do
+    sleep "$INTERVAL"
+    ts=$(date +%s)
+    out="$ts"
+
+    for entry in "${DOMAINS[@]}"; do
+        name="${entry%%=*}"
+        path="${entry#*=}"
+
+        cur=$(cat "$path" 2>/dev/null) || continue
+        prev="${PREV[$name]:-}"
+        [[ -n "$prev" ]] || { PREV["$name"]="$cur"; continue; }
+
+        delta=$((cur - prev))
+        if (( delta < 0 )); then
+            max=$(cat "$(dirname "$path")/max_energy_range_uj" 2>/dev/null || echo 262143328850)
+            delta=$((max - prev + cur))
+        fi
+
+        watts=$(awk -v d="$delta" -v i="$INTERVAL" 'BEGIN { printf "%.1f", d / i / 1000000 }')
+        out="$out $name=$watts"
+        PREV["$name"]="$cur"
+    done
+
+    echo "$out" > "$OUTPUT"
+done

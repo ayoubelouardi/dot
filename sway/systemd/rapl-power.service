@@ -1,0 +1,12 @@
+[Unit]
+Description=RAPL power monitor for sway status bar
+Documentation=https://www.kernel.org/doc/html/latest/power/powercap/powercap.html
+
+[Service]
+ExecStart=/home/ia/.config/dot/sway/bin/rapl-read
+Restart=always
+RestartSec=5
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
