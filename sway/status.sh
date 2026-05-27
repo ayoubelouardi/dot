@@ -3,35 +3,37 @@ set -euo pipefail
 
 SEP="  "
 ICON_SEP=" "
+is_num() { [[ "$1" =~ ^[0-9]+$ ]]; }
+has_cmd() { command -v "$1" &>/dev/null; }
 
 # date
 date_str="$(date "+%H:%M %a %d/%m")"
 
 # battery info
-battery_devices="$(upower --enumerate | grep -E 'battery' || true)"
 battery_sum=0
 battery_count=0
 any_charging=false
 any_low=false
+battery_devices=""
 
-if [[ -n "${battery_devices}" ]]; then
-  while IFS= read -r dev; do
-    info="$(upower --show-info "$dev" 2>/dev/null || true)"
-    percent="$(awk -F': *' '/percentage/ {gsub(/%/,"",$2); print $2}' <<<"$info" | head -n1)"
-    state="$(awk -F': *' '/state/ {print $2}' <<<"$info" | head -n1)"
+if has_cmd upower; then
+  battery_devices="$(upower --enumerate 2>/dev/null | grep -E 'battery' || true)"
+  if [[ -n "$battery_devices" ]]; then
+    while IFS= read -r dev; do
+      info="$(upower --show-info "$dev" 2>/dev/null || true)"
+      [[ -z "$info" ]] && continue
+      percent="$(awk -F': *' '/percentage/ {gsub(/%/,"",$2); print $2}' <<<"$info" | head -n1)"
+      state="$(awk -F': *' '/state/ {print $2}' <<<"$info" | head -n1)"
 
-    if [[ -n "${percent}" ]]; then
-      battery_sum=$((battery_sum + percent))
-      battery_count=$((battery_count + 1))
-      if (( percent <= 15 )); then
-        any_low=true
+      if [[ -n "${percent}" ]]; then
+        battery_sum=$((battery_sum + percent))
+        battery_count=$((battery_count + 1))
+        (( percent <= 15 )) && any_low=true
       fi
-    fi
 
-    if [[ "${state:-}" == "charging" ]]; then
-      any_charging=true
-    fi
-  done <<< "$battery_devices"
+      [[ "$state" == "charging" ]] && any_charging=true
+    done <<< "$battery_devices"
+  fi
 fi
 
 if (( battery_count > 0 )); then
@@ -95,35 +97,43 @@ mem_used="$(free -h | awk '/Mem:/ {print $3 "/" $2}')"
 storage_used="$(df -h / | awk 'NR==2 {print $3 "/" $2 " (" $5 ")"}')"
 
 # network
-ssid="$(nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1=="yes"{print $2; exit}')"
-if [[ -n "${ssid}" ]]; then
-  net_str="📶 $ssid"
-elif nmcli -t -f TYPE,STATE dev status 2>/dev/null | grep -q '^ethernet:connected$'; then
-  net_str="🌐 Ethernet"
-else
-  net_str="❌"
+net_str="❌"
+if has_cmd nmcli; then
+  ssid="$(nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1=="yes"{print $2; exit}')"
+  if [[ -n "${ssid}" ]]; then
+    net_str="📶 $ssid"
+  elif nmcli -t -f TYPE,STATE dev status 2>/dev/null | grep -q '^ethernet:connected$'; then
+    net_str="🌐 Ethernet"
+  fi
 fi
 
 # network speed
 net_speed_str=""
 net_iface="$(ip -o route get 1 2>/dev/null | awk '{print $5; exit}')"
 if [[ -n "$net_iface" ]]; then
-  rx_now=$(cat "/sys/class/net/$net_iface/statistics/rx_bytes" 2>/dev/null || echo 0)
-  tx_now=$(cat "/sys/class/net/$net_iface/statistics/tx_bytes" 2>/dev/null || echo 0)
-  now=$(date +%s)
-  state_file="/tmp/sway-net-state"
-  if [[ -r "$state_file" ]]; then
-    read prev_ts prev_rx prev_tx < "$state_file"
-    elapsed=$(( now - prev_ts ))
-    if (( elapsed > 0 )); then
-      rx_bps=$(( (rx_now - prev_rx) / elapsed ))
-      tx_bps=$(( (tx_now - prev_tx) / elapsed ))
-      rx_fmt=$(awk -v b="$rx_bps" 'BEGIN{ if(b>1073741824) printf "%.1fG", b/1073741824; else if(b>1048576) printf "%.1fM", b/1048576; else if(b>1024) printf "%.0fK", b/1024; else printf "%dB", b }')
-      tx_fmt=$(awk -v b="$tx_bps" 'BEGIN{ if(b>1073741824) printf "%.1fG", b/1073741824; else if(b>1048576) printf "%.1fM", b/1048576; else if(b>1024) printf "%.0fK", b/1024; else printf "%dB", b }')
-      net_speed_str="$(printf "↓%4s ↑%4s" "$rx_fmt" "$tx_fmt")"
+  rx_path="/sys/class/net/$net_iface/statistics/rx_bytes"
+  tx_path="/sys/class/net/$net_iface/statistics/tx_bytes"
+  if [[ -r "$rx_path" && -r "$tx_path" ]]; then
+    rx_now=$(cat "$rx_path" 2>/dev/null || echo 0)
+    tx_now=$(cat "$tx_path" 2>/dev/null || echo 0)
+    now=$(date +%s)
+    state_file="/tmp/sway-net-state"
+    if [[ -r "$state_file" ]]; then
+      read prev_ts prev_rx prev_tx < "$state_file" || true
+      if is_num "$prev_ts" && is_num "$prev_rx" && is_num "$prev_tx"; then
+        elapsed=$(( now - prev_ts ))
+        if (( elapsed > 0 )) && (( rx_now >= prev_rx )) && (( tx_now >= prev_tx )); then
+          rx_bps=$(( (rx_now - prev_rx) / elapsed ))
+          tx_bps=$(( (tx_now - prev_tx) / elapsed ))
+          read rx_fmt tx_fmt <<< $(awk -v r="$rx_bps" -v t="$tx_bps" '
+            function f(b) { if(b>1073741824) return sprintf("%.1fG", b/1073741824); else if(b>1048576) return sprintf("%.1fM", b/1048576); else if(b>1024) return sprintf("%.0fK", b/1024); else return sprintf("%dB", b) }
+            BEGIN { print f(r), f(t) }')
+          net_speed_str="$(printf "↓%4s ↑%4s" "$rx_fmt" "$tx_fmt")"
+        fi
+      fi
     fi
+    echo "$now $rx_now $tx_now" > "$state_file"
   fi
-  echo "$now $rx_now $tx_now" > "$state_file"
 fi
 
 # power consumption
@@ -131,9 +141,9 @@ power_str=""
 
 # Try RAPL data (from rapl-power systemd service)
 if [[ -r /tmp/sway-power ]]; then
-  read ts rest < /tmp/sway-power
+  read ts rest < /tmp/sway-power || true
   now=$(date +%s)
-  if (( now - ts < 10 )); then
+  if is_num "$ts" && (( now - ts < 10 )); then
     for kv in $rest; do
       case "$kv" in
         psys=*) power_str="🔌 ${kv#psys=}W"; break ;;
@@ -150,7 +160,7 @@ if [[ -r /tmp/sway-power ]]; then
 fi
 
 # Fallback: upower battery discharge rate
-if [[ -z "$power_str" && -n "$battery_devices" ]]; then
+if [[ -z "$power_str" && -n "$battery_devices" ]] && has_cmd upower; then
   total_rate=0
   any_discharging=false
   while IFS= read -r dev; do
