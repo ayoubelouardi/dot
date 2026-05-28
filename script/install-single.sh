@@ -10,7 +10,7 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-target="$1"
+target="${1%/}"
 src="$DOTFILES_DIR/$target"
 dest="$HOME/.config/$target"
 

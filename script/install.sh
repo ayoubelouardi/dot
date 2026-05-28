@@ -43,6 +43,7 @@ FILES=(
 
 DIRECTORIES=(
     "sway"
+    "ghostty"
     "kitty"
     "rofi"
     "zellij"
