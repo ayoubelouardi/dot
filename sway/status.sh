@@ -3,6 +3,7 @@ set -euo pipefail
 
 SEP="  "
 ICON_SEP=" "
+WEATHER_CACHE_TTL=3600  # seconds (1h)
 is_num() { [[ "$1" =~ ^[0-9]+$ ]]; }
 has_cmd() { command -v "$1" &>/dev/null; }
 
@@ -187,5 +188,15 @@ if [[ -z "$power_str" ]]; then
   fi
 fi
 
-echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}<span foreground='#888888'>${date_str}</span>"
+# weather (cached, re-fetch every 5 min)
+weather_str=""
+weather_cache="/tmp/sway-weather"
+if has_cmd curl; then
+  if [[ ! -r "$weather_cache" || $(( $(date +%s) - $(stat -c %Y "$weather_cache" 2>/dev/null || echo 0) )) -gt $WEATHER_CACHE_TTL ]]; then
+    curl -sLm 3 "wttr.in/?format=2" 2>/dev/null | tr -d '[:space:]' > "$weather_cache" || true
+  fi
+  weather_str="$(< "$weather_cache")"
+fi
+
+echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}${weather_str}${SEP}<span foreground='#888888'>${date_str}</span>"
 
