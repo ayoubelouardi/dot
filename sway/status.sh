@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 SEP="  "
 ICON_SEP=" "
 WEATHER_CACHE_TTL=3600  # seconds (1h)
+MAX_SSID_LEN=14
 is_num() { [[ "$1" =~ ^[0-9]+$ ]]; }
 has_cmd() { command -v "$1" &>/dev/null; }
+
+main() {
 
 # date
 date_str="$(date "+%H:%M %a %d/%m")"
@@ -102,7 +105,7 @@ net_str="❌"
 if has_cmd nmcli; then
   ssid="$(nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1=="yes"{print $2; exit}')"
   if [[ -n "${ssid}" ]]; then
-    net_str="📶 $ssid"
+    net_str="📶 ${ssid:0:$MAX_SSID_LEN}"
   elif nmcli -t -f TYPE,STATE dev status 2>/dev/null | grep -q '^ethernet:connected$'; then
     net_str="🌐 Ethernet"
   fi
@@ -128,7 +131,7 @@ if [[ -n "$net_iface" ]]; then
           tx_bps=$(( (tx_now - prev_tx) / elapsed ))
           read rx_fmt tx_fmt <<< $(awk -v r="$rx_bps" -v t="$tx_bps" '
             function f(b) { if(b>1073741824) return sprintf("%.1fG", b/1073741824); else if(b>1048576) return sprintf("%.1fM", b/1048576); else if(b>1024) return sprintf("%.0fK", b/1024); else return sprintf("%dB", b) }
-            BEGIN { print f(r), f(t) }')
+            BEGIN { print f(r), f(t) }') || true
           net_speed_str="$(printf "↓%4s ↑%4s" "$rx_fmt" "$tx_fmt")"
         fi
       fi
@@ -188,15 +191,33 @@ if [[ -z "$power_str" ]]; then
   fi
 fi
 
-# weather (cached, re-fetch every 5 min)
+# weather (cached, re-fetch every 1h)
 weather_str=""
 weather_cache="/tmp/sway-weather"
+
+has_internet() { ip route show default &>/dev/null; }
+
 if has_cmd curl; then
-  if [[ ! -r "$weather_cache" || $(( $(date +%s) - $(stat -c %Y "$weather_cache" 2>/dev/null || echo 0) )) -gt $WEATHER_CACHE_TTL ]]; then
+  should_fetch=false
+  if [[ -r "$weather_cache" ]]; then
+    cached="$(< "$weather_cache")"
+    age=$(( $(date +%s) - $(stat -c %Y "$weather_cache" 2>/dev/null || echo 0) ))
+    if [[ $age -gt $WEATHER_CACHE_TTL || -z "$cached" || "$cached" == *DOCTYPE* || "$cached" == *html* ]]; then
+      should_fetch=true
+    fi
+  else
+    should_fetch=true
+  fi
+
+  if $should_fetch && has_internet; then
     curl -sLm 3 "wttr.in/?format=2" 2>/dev/null | tr -d '[:space:]' > "$weather_cache" || true
   fi
+
   weather_str="$(< "$weather_cache")"
 fi
 
 echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}${weather_str}${SEP}<span foreground='#888888'>${date_str}</span>"
+}
+
+main || true
 
