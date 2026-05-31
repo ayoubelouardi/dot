@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-SEP="  "
+SEP="|"
 ICON_SEP=" "
 WEATHER_CACHE_TTL=3600  # seconds (1h)
 MAX_SSID_LEN=14
