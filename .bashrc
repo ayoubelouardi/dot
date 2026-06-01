@@ -137,11 +137,6 @@ export GTK_USE_PORTAL=0
 # opencode
 export PATH=/home/ia/.opencode/bin:$PATH
 
-# exercism completion
-if [ -f ~/.config/exercism/exercism_completion.bash ]; then
-    source ~/.config/exercism/exercism_completion.bash
-fi
-
 # ollama completion
 if [ -f ~/.config/ollama/completions.bash ]; then
     source ~/.config/ollama/completions.bash
@@ -173,3 +168,9 @@ case ":$PATH:" in
 esac
 
 # <<< juliaup initialize <<<
+
+source_local_completions() {
+    while IFS= read -r -d '' f; do
+        source "$f"
+    done < <(find ~/.config/dot -name 'completions.bash' -type f -print0)
+}

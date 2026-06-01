@@ -2,7 +2,7 @@
 set -uo pipefail
 
 SEP="|"
-ICON_SEP=" "
+ICON_SEP=""
 WEATHER_CACHE_TTL=3600  # seconds (1h)
 MAX_SSID_LEN=14
 is_num() { [[ "$1" =~ ^[0-9]+$ ]]; }
