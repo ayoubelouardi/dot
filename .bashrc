@@ -111,10 +111,8 @@ if [ -d "$HOME/.local/bin" ] ; then
 fi
 
 
-# Node Version Manager (NVM)
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"        # Load NVM
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # Load NVM bash completion
+# NVM
+. "$HOME/.config/dot/script/nvm.sh"
 
 # Go (conditionally add if installed in standard location)
 [ -d "/usr/local/go/bin" ] && export PATH="$PATH:/usr/local/go/bin"
