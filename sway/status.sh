@@ -9,6 +9,8 @@ is_num() { [[ "$1" =~ ^[0-9]+$ ]]; }
 has_cmd() { command -v "$1" &>/dev/null; }
 
 main() {
+has_internet=false
+ip route show default &>/dev/null && has_internet=true
 
 # date
 date_str="$(date "+%H:%M %a %d/%m")"
@@ -98,7 +100,7 @@ fi
 mem_used="$(free -h | awk '/Mem:/ {print $3 "/" $2}')"
 
 # storage
-storage_used="$(df -h / | awk 'NR==2 {print $3 "/" $2 " (" $5 ")"}')"
+storage_used="$(df -h / | awk 'NR==2 {print $3 "/" $2}')"
 
 # network
 net_str="❌"
@@ -195,9 +197,7 @@ fi
 weather_str=""
 weather_cache="/tmp/sway-weather"
 
-has_internet() { ip route show default &>/dev/null; }
-
-if has_cmd curl; then
+if has_cmd curl && $has_internet; then
   should_fetch=false
   if [[ -r "$weather_cache" ]]; then
     cached="$(< "$weather_cache")"
@@ -209,14 +209,21 @@ if has_cmd curl; then
     should_fetch=true
   fi
 
-  if $should_fetch && has_internet; then
-    curl -sLm 3 "wttr.in/?format=2" 2>/dev/null | tr -d '[:space:]' > "$weather_cache" || true
+  if $should_fetch; then
+    curl -sLm 3 "wttr.in/?format=%c+%t" 2>/dev/null | tr -d '[:space:]' > "$weather_cache" || true
   fi
 
   weather_str="$(< "$weather_cache")"
 fi
 
-echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}${weather_str}${SEP}<span foreground='#888888'>${date_str}</span>"
+# salah times (next prayer countdown)
+salah_str=""
+if $has_internet; then
+  salah_str="$("$(dirname "$0")/bin/salah" 2>/dev/null || true)"
+fi
+[[ -n "$salah_str" ]] && salah_str="${salah_str}${SEP}"
+
+echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}${weather_str}${SEP}${salah_str}<span foreground='#888888'>${date_str}</span>"
 }
 
 main || true

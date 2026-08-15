@@ -172,3 +172,7 @@ source_local_completions() {
         source "$f"
     done < <(find ~/.config/dot -name 'completions.bash' -type f -print0)
 }
+
+# Qwen Code PATH block begin
+export PATH='/home/ia/.local/bin':$PATH
+# Qwen Code PATH block end

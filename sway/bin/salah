@@ -1,0 +1,219 @@
+#!/usr/bin/env python3
+import math, time, os, sys
+
+CACHE = "/tmp/sway-salah-cache"
+LOC_CACHE = "/tmp/sway-salah-loc"
+REMINDER_FILE = "/tmp/sway-salah-reminders"
+CACHE_VER = 3
+
+LAT, LON = 33.5922, -7.6184
+
+METHODS = {
+    "MWL":     {"fajr": 18,   "isha": 17,    "dhuhr": 0, "maghrib": 0},
+    "ISNA":    {"fajr": 15,   "isha": 15,    "dhuhr": 0, "maghrib": 0},
+    "Morocco": {"fajr": 19,   "isha": 17,    "dhuhr": 5, "maghrib": 5},
+    "Makkah":  {"fajr": 18.5, "isha": 90,    "dhuhr": 0, "maghrib": 0},
+    "Karachi": {"fajr": 18,   "isha": 18,    "dhuhr": 0, "maghrib": 0},
+    "Egypt":   {"fajr": 19.5, "isha": 17.5,  "dhuhr": 0, "maghrib": 0},
+}
+
+REMINDER_OFFSETS = [
+    (-300, "in 5 minutes ⏰"),
+    (0,    "time 🕌"),
+    (600,  "time (10 min ago)"),
+]
+
+def day_of_year(y, m, d):
+    days = [31, 29 if (y % 4 == 0 and (y % 100 != 0 or y % 400 == 0)) else 28,
+            31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    return sum(days[:m-1]) + d
+
+def sun_position(doy):
+    n = doy
+    L = (280.460 + 0.9856474 * n) % 360
+    g = (357.528 + 0.9856003 * n) % 360
+    lam = L + 1.915 * math.sin(math.radians(g)) + 0.020 * math.sin(math.radians(2*g))
+    dec = math.asin(math.sin(math.radians(lam)) * math.sin(math.radians(23.439)))
+    B = math.radians(360 / 365 * (n - 1))
+    eot = 229.2 * (0.000075 + 0.001868 * math.cos(B) - 0.032077 * math.sin(B)
+                   - 0.014615 * math.cos(2*B) - 0.04089 * math.sin(2*B))
+    return dec, eot
+
+def hour_angle(lat_r, dec_r, elev):
+    cos_ha = (math.sin(math.radians(elev)) - math.sin(lat_r) * math.sin(dec_r)) / \
+             (math.cos(lat_r) * math.cos(dec_r))
+    cos_ha = max(-1, min(1, cos_ha))
+    return math.degrees(math.acos(cos_ha)) / 15
+
+def asr_hour_angle(lat_r, dec_r, hanafi=False):
+    r = 2 if hanafi else 1
+    alt = math.atan2(1, math.tan(abs(lat_r - dec_r)) + r)
+    cos_ha = (math.sin(alt) - math.sin(lat_r) * math.sin(dec_r)) / \
+             (math.cos(lat_r) * math.cos(dec_r))
+    cos_ha = max(-1, min(1, cos_ha))
+    return math.degrees(math.acos(cos_ha)) / 15
+
+def calc_prayers(lat, lon, tz, date, method_name="Morocco"):
+    y, m, d = date
+    doy = day_of_year(y, m, d)
+    lat_r = math.radians(lat)
+    dec, eot = sun_position(doy)
+
+    meth = METHODS.get(method_name, METHODS["Morocco"])
+    isha_min = meth.get("isha", 17)
+
+    noon = 12 + tz - lon / 15 - eot / 60
+    dhuhr = noon + meth.get("dhuhr", 0) / 60
+
+    sunrise_ha = hour_angle(lat_r, dec, -0.833)
+    sunrise = noon - sunrise_ha
+    sunset = noon + sunrise_ha
+
+    fajr_ha = hour_angle(lat_r, dec, -meth["fajr"])
+    fajr = noon - fajr_ha
+
+    if isinstance(isha_min, (int, float)) and isha_min < 60:
+        isha_ha = hour_angle(lat_r, dec, -isha_min)
+        isha = noon + isha_ha
+    else:
+        isha = sunset + isha_min / 60
+
+    asr_ha = asr_hour_angle(lat_r, dec)
+    asr = noon + asr_ha
+
+    maghrib = sunset + meth.get("maghrib", 0) / 60
+
+    return {
+        "Fajr": fajr, "Sunrise": sunrise, "Dhuhr": dhuhr,
+        "Asr": asr, "Sunset": sunset, "Maghrib": maghrib, "Isha": isha,
+    }
+
+def to_epoch(y, m, d, hours):
+    h = int(hours)
+    mi = int((hours - h) * 60)
+    s = int(((hours - h) * 60 - mi) * 60)
+    return int(time.mktime((y, m, d, h, mi, s, 0, 0, -1)))
+
+def format_hours(h):
+    hh = int(h)
+    mm = int((h - hh) * 60)
+    return f"{hh:02d}:{mm:02d}"
+
+def load_reminders():
+    if not os.path.isfile(REMINDER_FILE):
+        return set()
+    with open(REMINDER_FILE) as f:
+        return {int(line.strip()) for line in f if line.strip().isdigit()}
+
+def save_reminders(sent):
+    with open(REMINDER_FILE, "w") as f:
+        for ep in sorted(sent):
+            f.write(f"{ep}\n")
+
+def fire_reminders(prayer_epochs, now_epoch):
+    sent = load_reminders()
+    changed = False
+    for name, epoch in prayer_epochs:
+        for offset, label in REMINDER_OFFSETS:
+            rem_epoch = epoch + offset
+            if rem_epoch < 0:
+                continue
+            if abs(rem_epoch - now_epoch) <= 2 and rem_epoch not in sent:
+                msg = f"🕌 {name} {label}"
+                os.system(f"notify-send 'Prayer Reminder' '{msg}' 2>/dev/null || true")
+                sent.add(rem_epoch)
+                changed = True
+    if changed:
+        save_reminders(sent)
+
+def get_tz():
+    tz = -time.timezone / 3600
+    if time.localtime().tm_isdst:
+        tz += 1
+    return tz
+
+def main():
+    now = time.localtime()
+    today = (now.tm_year, now.tm_mon, now.tm_mday)
+    now_epoch = int(time.time())
+    tz = get_tz()
+
+    lat, lon = LAT, LON
+    if os.path.isfile(LOC_CACHE):
+        with open(LOC_CACHE) as f:
+            parts = f.read().strip().split()
+            if len(parts) >= 2:
+                lat, lon = float(parts[0]), float(parts[1])
+
+    prayers_today = calc_prayers(lat, lon, tz, today)
+    tomorrow = (now.tm_year, now.tm_mon, now.tm_mday + 1)
+    try:
+        _ = time.mktime((tomorrow[0], tomorrow[1], tomorrow[2], 12, 0, 0, 0, 0, -1))
+    except:
+        md = [0, 31, 29 if (tomorrow[0] % 4 == 0 and (tomorrow[0] % 100 != 0 or tomorrow[0] % 400 == 0)) else 28,
+              31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        if tomorrow[2] > md[tomorrow[1]]:
+            tomorrow = (tomorrow[0], tomorrow[1] + 1, 1)
+            if tomorrow[1] > 12:
+                tomorrow = (tomorrow[0] + 1, 1, 1)
+    prayers_tomorrow = calc_prayers(lat, lon, tz, tomorrow)
+
+    cache_valid = False
+    if os.path.isfile(CACHE):
+        with open(CACHE) as f:
+            ver_line = f.readline().strip()
+            date_line = f.readline().strip()
+            if ver_line == f"# v{CACHE_VER}" and date_line == f"# {today[0]:04d}-{today[1]:02d}-{today[2]:02d}":
+                cache_valid = True
+
+    if not cache_valid:
+        os.makedirs(os.path.dirname(CACHE) or ".", exist_ok=True)
+        with open(CACHE, "w") as f:
+            f.write(f"# v{CACHE_VER}\n")
+            f.write(f"# {today[0]:04d}-{today[1]:02d}-{today[2]:02d}\n")
+            for name in ("Fajr", "Sunrise", "Dhuhr", "Asr", "Sunset", "Maghrib", "Isha"):
+                t = prayers_today[name]
+                ds = f"{today[0]:04d}-{today[1]:02d}-{today[2]:02d}"
+                f.write(f"{ds} {name} {format_hours(t)}\n")
+            for name in ("Fajr", "Sunrise", "Dhuhr", "Asr", "Sunset", "Maghrib", "Isha"):
+                t = prayers_tomorrow[name]
+                ds = f"{tomorrow[0]:04d}-{tomorrow[1]:02d}-{tomorrow[2]:02d}"
+                f.write(f"{ds} {name} {format_hours(t)}\n")
+
+    prayer_epochs = []
+    with open(CACHE) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split()
+            if len(parts) < 3:
+                continue
+            ds, name, time_str = parts[0], parts[1], parts[2]
+            if name in ("Sunrise", "Sunset"):
+                continue
+            y, mo, d = map(int, ds.split("-"))
+            h, mi = map(int, time_str.split(":"))
+            epoch = int(time.mktime((y, mo, d, h, mi, 0, 0, 0, -1)))
+            prayer_epochs.append((name, epoch))
+
+    fire_reminders(prayer_epochs, now_epoch)
+
+    next_name = ""
+    next_epoch = 0
+    for name, epoch in prayer_epochs:
+        if epoch > now_epoch and (not next_name or epoch < next_epoch):
+            next_name = name
+            next_epoch = epoch
+
+    if next_name:
+        rem = next_epoch - now_epoch
+        hours = rem // 3600
+        mins = (rem % 3600) // 60
+        if hours > 0:
+            print(f"🕌 {next_name} {hours:02d}:{mins:02d}")
+        else:
+            print(f"🕌 {next_name} {mins:02d}m")
+
+if __name__ == "__main__":
+    main()

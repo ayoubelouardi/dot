@@ -100,7 +100,7 @@ alias yupdate='sudo bash ~/.config/dot/script/update.sh'
 
 # other
 alias rmswap='rm .*.swp'
-alias vps='bash ~/.config/dot/vps.sh'
+alias vps='ssh vps'
 alias phone='bash ~/.config/dot/script/phone.sh'
 
 

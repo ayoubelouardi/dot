@@ -47,5 +47,21 @@ else
     log "Snap not installed, skipping..."
 fi
 
-success "System update and cleanup completed successfully!"
+# Source nvm to make npm available
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/nvm.sh" ]; then
+    [ -n "${SUDO_USER:-}" ] && HOME="$(eval echo ~$SUDO_USER)"
+    # shellcheck source=/dev/null
+    . "$SCRIPT_DIR/nvm.sh"
+fi
+
+# Check if npm is installed before updating
+if command -v npm >/dev/null 2>&1; then
+    log "Updating NPM packages..."
+    npm update -g && success "NPM packages updated."
+else
+    log "NPM not installed, skipping..."
+fi
+
+  success "System update and cleanup completed successfully!"
 
