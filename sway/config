@@ -287,6 +287,17 @@ client.urgent           #ff5555 #000000 #ff5555 #000000 #ff5555
 client.placeholder      #666666 #000000 #666666 #000000 #666666
 
 
+# Hex dictation (no shortcuts portal on sway -> bind commands directly)
+# Hold Super+Shift+D: starts on key press, stops and transcribes on release
+bindsym $mod+Shift+d exec hex dictation start
+bindsym --release $mod+Shift+d exec hex dictation stop
+# Toggle: Super+Ctrl+D starts, pressing again stops and transcribes
+bindsym $mod+Ctrl+d exec hex dictation toggle
+# Cancel and discard the current recording: Super+Ctrl+X
+bindsym $mod+Ctrl+x exec hex dictation cancel
+# Re-paste the most recent dictation: Super+Ctrl+V
+bindsym $mod+Ctrl+v exec hex paste-last
+
 # Notification Daemon
 exec swaync
 
