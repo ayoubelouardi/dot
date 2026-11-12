@@ -107,7 +107,7 @@ net_str="❌"
 if has_cmd nmcli; then
   ssid="$(nmcli -t -f active,ssid dev wifi 2>/dev/null | awk -F: '$1=="yes"{print $2; exit}')"
   if [[ -n "${ssid}" ]]; then
-    net_str="📶 ${ssid:0:$MAX_SSID_LEN}"
+    net_str="📶 ${ssid:0:1}"
   elif nmcli -t -f TYPE,STATE dev status 2>/dev/null | grep -q '^ethernet:connected$'; then
     net_str="🌐 Ethernet"
   fi
@@ -139,6 +139,22 @@ if [[ -n "$net_iface" ]]; then
       fi
     fi
     echo "$now $rx_now $tx_now" > "$state_file"
+  fi
+fi
+
+# bluetooth
+bt_str=""
+if has_cmd bluetoothctl; then
+  if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
+    bt_dev="$(bluetoothctl devices Connected 2>/dev/null | head -n1 | sed -E 's/^Device [0-9A-Fa-f:]+ //')"
+    if [[ -n "$bt_dev" ]]; then
+      (( ${#bt_dev} > 14 )) && bt_dev="${bt_dev:0:13}…"
+      bt_str="<span foreground='#50fa7b'>🎧 ${bt_dev}</span>"
+    else
+      bt_str="<span foreground='#888888'>🔵 on</span>"
+    fi
+  else
+    bt_str="<span foreground='#ff5555'>📴 off</span>"
   fi
 fi
 
@@ -223,7 +239,7 @@ if $has_internet; then
 fi
 [[ -n "$salah_str" ]] && salah_str="${salah_str}${SEP}"
 
-echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${power_str}${SEP}${weather_str}${SEP}${salah_str}<span foreground='#888888'>${date_str}</span>"
+echo "💻 ${cpu_usage} ${cpu_temp} ${cpu_freq} ${fan_rpm}${SEP}🧠 ${mem_used}${SEP}💾 ${storage_used}${SEP}${battery_icon}${SEP}${net_str} ${net_speed_str}${SEP}${bt_str}${SEP}${power_str}${SEP}${weather_str}${SEP}${salah_str}<span foreground='#888888'>${date_str}</span>"
 }
 
 main || true

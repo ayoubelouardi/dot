@@ -176,3 +176,4 @@ source_local_completions() {
 # Qwen Code PATH block begin
 export PATH='/home/ia/.local/bin':$PATH
 # Qwen Code PATH block end
+. "/home/ia/.acme.sh/acme.sh.env"

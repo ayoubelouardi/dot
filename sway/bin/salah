@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-import math, time, os, sys
+import calendar, math, time, os, sys
+
+# Fixed UTC offset for prayer-time calculations (hours east of GMT).
+# Examples: GMT+0 = 0, GMT+1 = 1, GMT-5 = -5.
+TIMEZONE_OFFSET = 0
 
 CACHE = "/tmp/sway-salah-cache"
 LOC_CACHE = "/tmp/sway-salah-loc"
 REMINDER_FILE = "/tmp/sway-salah-reminders"
-CACHE_VER = 3
+CACHE_VER = 4
 
 LAT, LON = 33.5922, -7.6184
 
@@ -92,7 +96,7 @@ def to_epoch(y, m, d, hours):
     h = int(hours)
     mi = int((hours - h) * 60)
     s = int(((hours - h) * 60 - mi) * 60)
-    return int(time.mktime((y, m, d, h, mi, s, 0, 0, -1)))
+    return calendar.timegm((y, m, d, h, mi, s)) - int(TIMEZONE_OFFSET * 3600)
 
 def format_hours(h):
     hh = int(h)
@@ -127,15 +131,13 @@ def fire_reminders(prayer_epochs, now_epoch):
         save_reminders(sent)
 
 def get_tz():
-    tz = -time.timezone / 3600
-    if time.localtime().tm_isdst:
-        tz += 1
-    return tz
+    return TIMEZONE_OFFSET
 
 def main():
-    now = time.localtime()
-    today = (now.tm_year, now.tm_mon, now.tm_mday)
     now_epoch = int(time.time())
+    # Derive the prayer date from the configured offset, not the system timezone.
+    now = time.gmtime(now_epoch + int(TIMEZONE_OFFSET * 3600))
+    today = (now.tm_year, now.tm_mon, now.tm_mday)
     tz = get_tz()
 
     lat, lon = LAT, LON
@@ -146,16 +148,8 @@ def main():
                 lat, lon = float(parts[0]), float(parts[1])
 
     prayers_today = calc_prayers(lat, lon, tz, today)
-    tomorrow = (now.tm_year, now.tm_mon, now.tm_mday + 1)
-    try:
-        _ = time.mktime((tomorrow[0], tomorrow[1], tomorrow[2], 12, 0, 0, 0, 0, -1))
-    except:
-        md = [0, 31, 29 if (tomorrow[0] % 4 == 0 and (tomorrow[0] % 100 != 0 or tomorrow[0] % 400 == 0)) else 28,
-              31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-        if tomorrow[2] > md[tomorrow[1]]:
-            tomorrow = (tomorrow[0], tomorrow[1] + 1, 1)
-            if tomorrow[1] > 12:
-                tomorrow = (tomorrow[0] + 1, 1, 1)
+    tomorrow_time = time.gmtime(now_epoch + int((TIMEZONE_OFFSET + 24) * 3600))
+    tomorrow = (tomorrow_time.tm_year, tomorrow_time.tm_mon, tomorrow_time.tm_mday)
     prayers_tomorrow = calc_prayers(lat, lon, tz, tomorrow)
 
     cache_valid = False
@@ -194,7 +188,7 @@ def main():
                 continue
             y, mo, d = map(int, ds.split("-"))
             h, mi = map(int, time_str.split(":"))
-            epoch = int(time.mktime((y, mo, d, h, mi, 0, 0, 0, -1)))
+            epoch = calendar.timegm((y, mo, d, h, mi, 0)) - int(TIMEZONE_OFFSET * 3600)
             prayer_epochs.append((name, epoch))
 
     fire_reminders(prayer_epochs, now_epoch)

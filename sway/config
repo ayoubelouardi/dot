@@ -13,6 +13,9 @@ exec systemctl --user import-environment
 # xdg-desktop-portal-wlr
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
 
+# polkit authentication agent (needed by pkexec / system installers)
+exec lxpolkit
+
 ### Variables
 #
 # Logo key. Use Mod1 for Alt.

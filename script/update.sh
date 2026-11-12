@@ -27,22 +27,30 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-log "Updating APT package list..."
-apt update -y && success "APT package list updated."
+# Run a step without letting its failure abort the rest of the update
+FAILED_STEPS=()
+step() {
+    local description="$1"
+    shift
+    log "$description..."
+    if "$@"; then
+        success "$description."
+    else
+        local rc=$?
+        error "$description failed (exit $rc), continuing."
+        FAILED_STEPS+=("$description")
+    fi
+}
 
-log "Upgrading installed packages..."
-apt full-upgrade -y && success "System packages upgraded."
-
-log "Fixing broken dependencies (if any)..."
-apt --fix-broken install -y && success "Broken dependencies resolved."
-
-log "Removing unused packages..."
-apt autoremove -y && apt clean && success "Unused packages removed and cache cleaned."
+step "Updating APT package list" apt update -y
+step "Upgrading installed packages" apt full-upgrade -y
+step "Fixing broken dependencies" apt --fix-broken install -y
+step "Removing unused packages" apt autoremove -y
+step "Cleaning package cache" apt clean
 
 # Check if snap is installed before refreshing
 if command -v snap >/dev/null 2>&1; then
-    log "Updating Snap packages..."
-    snap refresh && success "Snap packages updated."
+    step "Updating Snap packages" snap refresh
 else
     log "Snap not installed, skipping..."
 fi
@@ -57,11 +65,16 @@ fi
 
 # Check if npm is installed before updating
 if command -v npm >/dev/null 2>&1; then
-    log "Updating NPM packages..."
-    npm update -g && success "NPM packages updated."
+    step "Updating NPM packages" npm update -g
 else
     log "NPM not installed, skipping..."
 fi
 
-  success "System update and cleanup completed successfully!"
+if [ ${#FAILED_STEPS[@]} -gt 0 ]; then
+    error "Finished with ${#FAILED_STEPS[@]} failed step(s):"
+    printf '  - %s\n' "${FAILED_STEPS[@]}"
+    exit 1
+fi
+
+success "System update and cleanup completed successfully!"
 
