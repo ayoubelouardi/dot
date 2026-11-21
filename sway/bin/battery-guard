@@ -52,17 +52,42 @@ notify() {
     fi
 }
 
+# The countdown notification must not linger once charging resumes.
+# Grab its ID so it can be replaced with a short-lived normal notification.
+COUNTDOWN_ID=""
+notify_countdown() {
+    local body="Suspending in ${GRACE}s to save your work. Plug in to cancel."
+    log "notification [critical] Battery critical (${PCT}%) - $body"
+    COUNTDOWN_ID=""
+    if command -v notify-send >/dev/null 2>&1; then
+        COUNTDOWN_ID="$(notify-send -p -a "Battery Guard" -u critical \
+            -i battery-critical -t 0 "Battery critical (${PCT}%)" "$body" 2>/dev/null)" || COUNTDOWN_ID=""
+        [[ "$COUNTDOWN_ID" =~ ^[0-9]+$ ]] || COUNTDOWN_ID=""
+    fi
+}
+
+dismiss_countdown() {
+    local title="$1" body="$2"
+    log "notification [normal] $title - $body"
+    if [[ -n "$COUNTDOWN_ID" ]] && command -v notify-send >/dev/null 2>&1; then
+        notify-send -r "$COUNTDOWN_ID" -a "Battery Guard" -u normal \
+            -i battery-charging -t 5000 "$title" "$body" 2>/dev/null || true
+    elif command -v notify-send >/dev/null 2>&1; then
+        notify-send -a "Battery Guard" -u normal -i battery-charging \
+            -t 5000 "$title" "$body" 2>/dev/null || true
+    fi
+    COUNTDOWN_ID=""
+}
+
 # --- UPower ----------------------------------------------------------------
 dbus_prop() {
     local prop="$1" raw
     raw="$(gdbus call --system --dest "$UPower_SERVICE" --object-path "$DEVICE" \
            --method org.freedesktop.DBus.Properties.Get "$UPower_IFACE" "$prop" 2>/dev/null)" || return 1
-    # e.g. "(<49.5>,)" -> "49.5", "(<uint32 2>,)" -> "2"
-    if [[ "$prop" == "Percentage" ]]; then
-        printf '%s' "$raw" | tr -cd '0-9.'
-    else
-        printf '%s' "$raw" | tr -cd '0-9'
-    fi
+    # "(<49.5>,)" -> "49.5", "(<uint32 1>,)" -> "1".
+    # Take the LAST numeric token: tr -cd '0-9' would turn "uint32 1"
+    # into "321", so charging was never detected.
+    printf '%s\n' "$raw" | grep -oE '[0-9]+([.][0-9]+)?' | tail -n1
 }
 
 read_battery() {
@@ -144,15 +169,20 @@ warn_levels_above_halt() {
 halt_sequence() {
     local remaining=$GRACE
 
-    notify critical "battery-critical" "Battery critical (${PCT}%)" \
-        "Suspending in ${GRACE}s to save your work. Plug in to cancel."
+    notify_countdown
 
     while (( remaining > 0 )); do
         sleep 1
-        read_battery || break
+        if ! read_battery; then
+            log "battery state unreadable during countdown; cancelling suspend"
+            set_flag "halt_failed"
+            notify critical "battery-critical" "Suspend cancelled (sensor error)" \
+                "Could not read the battery. Nothing was suspended; will retry later."
+            return 0
+        fi
         if on_power; then
             set_flag "halt_cancelled"
-            notify normal "battery-charging" "Suspend cancelled" \
+            dismiss_countdown "Suspend cancelled" \
                 "Charger connected. Your session was left running."
             return 0
         fi
@@ -162,7 +192,7 @@ halt_sequence() {
     read_battery || true
     if on_power; then
         set_flag "halt_cancelled"
-        notify normal "battery-charging" "Suspend cancelled" \
+        dismiss_countdown "Suspend cancelled" \
             "Charger connected. Your session was left running."
         return 0
     fi
@@ -179,7 +209,7 @@ halt_sequence() {
         read_battery || true
         if on_power; then
             clear_flags
-            notify normal "battery-charging" "Back on power" \
+            dismiss_countdown "Back on power" \
                 "Your session was restored. Battery alerts have been reset."
         else
             set_flag "halt_failed"
@@ -206,9 +236,14 @@ while true; do
 
     if on_power; then
         if (( ${#FLAGS[@]} > 0 )); then
+            was_cancelled=0
+            flag_set "halt_cancelled" && was_cancelled=1
             clear_flags
-            notify normal "battery-charging" "Power restored" \
-                "Battery is charging (${PCT}%). Low-battery alerts reset."
+            # An in-flight countdown already announced the cancellation.
+            if (( ! was_cancelled )); then
+                notify normal "battery-charging" "Power restored" \
+                    "Battery is charging (${PCT}%). Low-battery alerts reset."
+            fi
         fi
         sleep "$POLL"
         continue
