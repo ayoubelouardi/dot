@@ -44,3 +44,7 @@ esac
 
 # <<< juliaup initialize <<<
 export WLR_BACKEND=x11
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/ia/.local/bin:$PATH"

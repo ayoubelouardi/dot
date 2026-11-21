@@ -177,3 +177,7 @@ source_local_completions() {
 export PATH='/home/ia/.local/bin':$PATH
 # Qwen Code PATH block end
 . "/home/ia/.acme.sh/acme.sh.env"
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/ia/.local/bin:$PATH"
