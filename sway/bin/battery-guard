@@ -1,0 +1,245 @@
+#!/usr/bin/env bash
+#
+# battery-guard - warn before the battery runs out, then suspend safely.
+#
+# Started from sway/config. Polls UPower's aggregate DisplayDevice, sends
+# persistent critical notifications, and at a low level suspends with
+# suspend-then-hibernate so the session survives even if the battery dies.
+#
+# Test knobs (all optional):
+#   BATTERY_GUARD_FAKE_PERCENT=25  BATTERY_GUARD_FAKE_STATE=2
+#   (or ..._PERCENT_FILE / ..._STATE_FILE to change values mid-run)
+#   BATTERY_GUARD_HALT_LEVEL=15  BATTERY_GUARD_WARN_LEVELS="30 20 15"
+#   BATTERY_GUARD_GRACE=60  BATTERY_GUARD_POLL=30  BATTERY_GUARD_DRY_RUN=1
+#
+set -uo pipefail
+
+UPower_SERVICE="org.freedesktop.UPower"
+UPower_IFACE="org.freedesktop.UPower.Device"
+DEVICE="${BATTERY_GUARD_DEVICE:-/org/freedesktop/UPower/devices/DisplayDevice}"
+WARN_LEVELS=(${BATTERY_GUARD_WARN_LEVELS:-30 20 15})
+HALT_LEVEL="${BATTERY_GUARD_HALT_LEVEL:-15}"
+GRACE="${BATTERY_GUARD_GRACE:-60}"
+POLL="${BATTERY_GUARD_POLL:-30}"
+DRY_RUN="${BATTERY_GUARD_DRY_RUN:-0}"
+RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+STATE_FILE="${BATTERY_GUARD_STATE_FILE:-$RUNTIME_DIR/battery-guard-state}"
+LOCK_FILE="$RUNTIME_DIR/battery-guard.lock"
+
+# UPower State values that mean "on external power".
+ON_POWER_STATES=" 1 4 5 "   # charging, fully charged, pending charge
+MAX_WARN=0
+for level in "${WARN_LEVELS[@]}"; do
+    (( level > MAX_WARN )) && MAX_WARN="$level"
+done
+
+mkdir -p "$RUNTIME_DIR"
+exec 9>"$LOCK_FILE"
+flock -n 9 || {
+    printf 'battery-guard: another instance is already running\n' >&2
+    exit 0
+}
+
+log() {
+    printf '%s battery-guard: %s\n' "$(date '+%F %T')" "$*" >&2
+}
+
+notify() {
+    local urgency="$1" icon="$2" title="$3" body="$4"
+    log "notification [$urgency] $title - $body"
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -a "Battery Guard" -u "$urgency" -i "$icon" "$title" "$body" || true
+    fi
+}
+
+# --- UPower ----------------------------------------------------------------
+dbus_prop() {
+    local prop="$1" raw
+    raw="$(gdbus call --system --dest "$UPower_SERVICE" --object-path "$DEVICE" \
+           --method org.freedesktop.DBus.Properties.Get "$UPower_IFACE" "$prop" 2>/dev/null)" || return 1
+    # e.g. "(<49.5>,)" -> "49.5", "(<uint32 2>,)" -> "2"
+    if [[ "$prop" == "Percentage" ]]; then
+        printf '%s' "$raw" | tr -cd '0-9.'
+    else
+        printf '%s' "$raw" | tr -cd '0-9'
+    fi
+}
+
+read_battery() {
+    if [[ -n "${BATTERY_GUARD_FAKE_PERCENT_FILE:-}" && -r "$BATTERY_GUARD_FAKE_PERCENT_FILE" ]]; then
+        PCT="$(< "$BATTERY_GUARD_FAKE_PERCENT_FILE")"
+        PCT="${PCT%%.*}"
+    elif [[ -n "${BATTERY_GUARD_FAKE_PERCENT:-}" ]]; then
+        PCT="${BATTERY_GUARD_FAKE_PERCENT%%.*}"
+    else
+        local pct
+        pct="$(dbus_prop Percentage)" || return 1
+        [[ -n "$pct" ]] || return 1
+        PCT="${pct%%.*}"
+        [[ -n "$PCT" ]] || PCT=0
+    fi
+
+    if [[ -n "${BATTERY_GUARD_FAKE_STATE_FILE:-}" && -r "$BATTERY_GUARD_FAKE_STATE_FILE" ]]; then
+        STATE="$(< "$BATTERY_GUARD_FAKE_STATE_FILE")"
+    elif [[ -n "${BATTERY_GUARD_FAKE_STATE:-}" ]]; then
+        STATE="${BATTERY_GUARD_FAKE_STATE}"
+    else
+        local state
+        state="$(dbus_prop State)" || return 1
+        [[ -n "$state" ]] || return 1
+        STATE="$state"
+    fi
+    return 0
+}
+
+on_power() {
+    [[ "$ON_POWER_STATES" == *" $STATE "* ]]
+}
+
+# --- one-shot state ---------------------------------------------------------
+declare -A FLAGS=()
+
+load_flags() {
+    FLAGS=()
+    local key val
+    while IFS='=' read -r key val; do
+        [[ -n "$key" ]] && FLAGS["$key"]="$val"
+    done < "$STATE_FILE" 2>/dev/null || true
+}
+
+save_flags() {
+    local key
+    : > "$STATE_FILE"
+    for key in "${!FLAGS[@]}"; do
+        printf '%s=%s\n' "$key" "${FLAGS[$key]}" >> "$STATE_FILE"
+    done
+}
+
+clear_flags() {
+    FLAGS=()
+    : > "$STATE_FILE"
+}
+
+clear_halt_flags() {
+    unset 'FLAGS[halted]' 'FLAGS[halted_at]' 'FLAGS[halt_cancelled]' 'FLAGS[halt_failed]'
+    save_flags
+}
+
+flag_set() { [[ "${FLAGS[$1]:-0}" == "1" ]]; }
+set_flag() { FLAGS["$1"]=1; save_flags; }
+
+# --- actions ----------------------------------------------------------------
+warn_levels_above_halt() {
+    local level
+    for level in "${WARN_LEVELS[@]}"; do
+        (( level <= HALT_LEVEL )) && continue
+        (( PCT <= level )) || continue
+        flag_set "warn_$level" && continue
+        set_flag "warn_$level"
+        notify critical "battery-low" "Battery at ${PCT}%" \
+            "Plug in your charger soon. The machine will suspend at ${HALT_LEVEL}%."
+    done
+}
+
+halt_sequence() {
+    local remaining=$GRACE
+
+    notify critical "battery-critical" "Battery critical (${PCT}%)" \
+        "Suspending in ${GRACE}s to save your work. Plug in to cancel."
+
+    while (( remaining > 0 )); do
+        sleep 1
+        read_battery || break
+        if on_power; then
+            set_flag "halt_cancelled"
+            notify normal "battery-charging" "Suspend cancelled" \
+                "Charger connected. Your session was left running."
+            return 0
+        fi
+        (( remaining-- ))
+    done
+
+    read_battery || true
+    if on_power; then
+        set_flag "halt_cancelled"
+        notify normal "battery-charging" "Suspend cancelled" \
+            "Charger connected. Your session was left running."
+        return 0
+    fi
+
+    if [[ "$DRY_RUN" == "1" ]]; then
+        log "DRY RUN: would run 'systemctl suspend-then-hibernate'"
+        return 0
+    fi
+
+    log "suspending with systemctl suspend-then-hibernate"
+    if systemctl suspend-then-hibernate; then
+        log "resumed"
+        sleep 3
+        read_battery || true
+        if on_power; then
+            clear_flags
+            notify normal "battery-charging" "Back on power" \
+                "Your session was restored. Battery alerts have been reset."
+        else
+            set_flag "halt_failed"
+            notify critical "battery-critical" "Still running on battery" \
+                "You resumed without a charger. Alerts will re-arm in 5 minutes."
+        fi
+    else
+        set_flag "halt_failed"
+        log "suspend request failed; will retry after the cooldown"
+    fi
+}
+
+# --- main loop --------------------------------------------------------------
+log "started (halt=${HALT_LEVEL}%, warnings=${WARN_LEVELS[*]}, grace=${GRACE}s, poll=${POLL}s, dry_run=${DRY_RUN})"
+
+while true; do
+    load_flags
+
+    if ! read_battery; then
+        log "could not read battery state; retrying in ${POLL}s"
+        sleep "$POLL"
+        continue
+    fi
+
+    if on_power; then
+        if (( ${#FLAGS[@]} > 0 )); then
+            clear_flags
+            notify normal "battery-charging" "Power restored" \
+                "Battery is charging (${PCT}%). Low-battery alerts reset."
+        fi
+        sleep "$POLL"
+        continue
+    fi
+
+    # A full recovery (above the highest warning level) resets everything.
+    # Otherwise only re-arm the *halt* logic after the battery recovered a bit
+    # or the 5-minute cooldown elapsed -- warning flags stay one-shot.
+    if (( PCT > MAX_WARN )); then
+        clear_flags
+    elif flag_set "halted" || flag_set "halt_cancelled" || flag_set "halt_failed"; then
+        started_at="${FLAGS[halted_at]:-0}"
+        now="$(date +%s)"
+        if (( PCT > HALT_LEVEL + 5 )) || (( now - started_at >= 300 )); then
+            clear_halt_flags
+            log "re-arming halt logic"
+        fi
+    fi
+
+    # At/below the halt level the critical countdown message replaces the
+    # normal warnings (avoids three overlapping popups).
+    if (( PCT > HALT_LEVEL )); then
+        warn_levels_above_halt
+    fi
+
+    if (( PCT <= HALT_LEVEL )) && ! flag_set "halted"; then
+        set_flag "halted"
+        FLAGS[halted_at]="$(date +%s)"
+        save_flags
+        halt_sequence
+    fi
+
+    sleep "$POLL"
+done

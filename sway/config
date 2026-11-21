@@ -304,6 +304,10 @@ bindsym $mod+Ctrl+v exec hex paste-last
 # Notification Daemon
 exec swaync
 
+# Low-battery warnings and safe suspend (warn at 30/20/15%, halt at 15%)
+# exec_always + the script's lock make this safe to start on every sway reload.
+exec_always ~/.config/sway/bin/battery-guard
+
 # Toggle control center
 bindsym $mod+Shift+n exec swaync-client -t -swk
 
